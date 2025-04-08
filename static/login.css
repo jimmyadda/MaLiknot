@@ -1,0 +1,59 @@
+body,html{
+    margin: 0;
+    padding: 0;
+    height: 100%;
+    font-family: Helvetica, sans-serif;
+    display: grid;
+    background-color: #f8f8f8;
+}
+
+.container{
+    margin: auto;
+    padding: 20px;
+    border: 1px solid #ccc;
+    border-radius: 10px;
+    background-color: #ffffff;
+    width: 300px;
+}
+
+input{
+    padding: 5px 0 5px 10px;
+    margin: 5px 0 5px 0;
+    font-size: 1em;
+    border-radius: 10px;
+    border: 1px solid #ccc;    
+}
+
+input[type='submit']{
+    background-color: rgba(59, 130, 246, 1);
+    color: white;
+    padding: 5px 5px 5px 25px;
+    margin: 5px 5px 5px 5px;
+    border-radius: 5px;
+    border: 1px solid #ccc;
+    width: 1fr;
+    display: inline-block;
+    height: 2em;
+}
+
+input[type='submit']:hover{
+    background-color: rgba(96,165,250,1);
+}
+
+.icon-tasker{
+    background: url('/static/icons/task-done-flat.svg') no-repeat left center;
+    padding-left: 40px;
+}
+
+.icon-login{
+    background: url('/static/icons/log-in-outline.svg') no-repeat left center;
+}
+.alert{
+   border: 3px solid rgba(239, 68, 68, 1);
+   border-radius: 5px;
+   background-color: rgba(248, 113, 113, 1);
+   color: white;
+   padding: 10px;
+
+}
+

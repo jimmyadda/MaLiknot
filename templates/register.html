@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta name="viewport" content="width=device-width, Initial-scale=1">
+        <title>Task App</title>
+        <link rel="stylesheet" type="text/css" href="/static/login.css" media="screen">
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+    </head>
+
+    <body>
+        <div class="container">
+            <h1 class="icon-tasker">Tasker</h1>
+            {%if alert != ""%}
+            <p class="alert">{{alert}}</p>
+            {%endif%}
+            <p>Plaese register to continue</p>
+            <form action="/register" method="POST">
+                  <div>
+                    <input type="text" name="name" placeholder="name"/>
+                    <input type="text" name="email" class="email" placeholder="email"/>
+                    <input type="text" name="userid" placeholder="userid"/>
+                    <input type="password" name="password" placeholder="password"/>
+
+                    <input type="submit" name="submit" value="register" class="icon-login"/></div>                  
+            </form>
+        </div>
+    </body>
+    <script type="text/javascript">
+
+                $(".email").blur(function(){            
+                console.log($(".email").val())
+
+                var verify_mail = validateEmail($(".email").val())
+                console.log(verify_mail)
+                if(!verify_mail){
+                    $(".email").val('') 
+                }
+                }); 
+
+                function validateEmail(email) {
+                    var is_valid= false
+                    if( /(.+)@(.+){2,}\.(.+){2,}/.test(email) ){
+                        is_valid= true
+                    } 
+                  return is_valid
+                }
+                
+
+
+    </script>
+</html>

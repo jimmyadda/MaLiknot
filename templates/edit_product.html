@@ -1,0 +1,38 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container">
+    {% for product in products%} 
+                    <div class="card mb-3" >
+                        <div class="row g-0">
+                        <div class="col-md-4">                           
+                        </div>
+                        <div class="col-md-8">
+                            <div class="card-body">
+                        <center>
+                            <h1>Edit Product</h1>
+                            <form method="POST">
+                                <input style="display: none;" type="text" id="id" name="id" value="{{ product.id }}" required><br>
+                                <label for="name">Name:</label>
+                                <input type="text" id="name" name="name" value="{{ product.name }}" required><br>
+                                
+                                <label for="price">Price:</label>
+                                <input type="number" id="price" name="price" value="{{ product.price }}" required><br>
+                                
+                                <label for="unit">unit:</label>
+                                <textarea id="unit" name="unit" required>{{ product.unit }}</textarea><br>
+                                
+                                <button type="submit" class="btn btn-primary" >Update Product</button>
+                            </form>
+                            <a href="{{ url_for('index') }}" class="btn btn-secondary">Home</a>
+                        </center>
+
+                            </div>
+                        </div>
+                        </div>
+                    </div>
+    {% endfor%}
+
+</div>
+
+{% endblock %}
