@@ -12,16 +12,39 @@
         </header>
         <!-- Section-->
         <section class="py-5">
-            <div class="container px-4 px-lg-5 mt-5">
-                <div class="row gx-4 gx-lg-5 row-cols-2 row-cols-md-3 row-cols-xl-4 justify-content-center">
-                    {% for product in all_items%}                    
-                    <div class="col mb-5">
-                        <div class="card h-100">
+            <div class="container">
+                <h1 class="mb-4">🧺 Grocery Lists</h1>
+              
+                <form method="POST" class="d-flex mb-4">
+                  <input type="text" name="list_name" class="form-control me-2" placeholder="New list name" required>
+                  <button class="btn btn-primary">Create List</button>
+                </form>
+                <h3>Existing Lists</h3>
+                <ul class="list-group">
+                  {% for list_name in lists %}
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                      {{ list_name }}
+                      <a href="{{ url_for('view_list', list_name=list_name) }}" class="btn btn-sm btn-outline-primary">Open</a>
+                    </li>
+                  {% else %}
+                    <li class="list-group-item">No lists yet.</li>
+                  {% endfor %}
+                </ul>
+              </div>
+              </div>
+            <div class="container container-box">
+                <h1 class="mb-4"> Products Lists</h1>
+                <div class="row row-cols-2 row-cols-sm-3 row-cols-md-4 row-cols-lg-5 g-3">
+                    <input type="text" id="productFilter" style="margin-bottom: 5px;" class="form-control" placeholder="Filter products...">
+                    {% for product in all_items%}  
+                    <div class="col">
+                    <div class="card" style="margin: 15px;">                 
+                    <div class="card-body">
+                        <p style="display: none;">{{ product['id'] }}</p>
+                        <!-- Product name-->
+                        <div class="card-title">{{ product['name'] }}                            
                             <!-- Product details-->
-                            <div class="card-body p-4">
-                                <div class="text-center">
-                                    <!-- Product name-->
-                                    <h5 class="fw-bolder">{{ product['name'] }}</h5>
+                            <div class="card-text">                    
                                     <!-- Product price-->
                                     $ {{ product['price'] }}
                                     <br>
@@ -31,33 +54,76 @@
                                 </div>
                             </div>
                             <!-- Product actions-->
-                            <div class="card-footer p-4 pt-0 border-top-0 bg-transparent">
-                                <div class="text-center"><a class="btn btn-outline-dark mt-auto" href="{{ url_for('edit_product', product_id= product['id']) }}">עדכן פריט</a></div>
+                            <div  class="">
+                                <div  style="display: flex;" class="text-center"><a class="btn btn-outline-dark mt-auto" href="{{ url_for('edit_product', product_id= product['id']) }}">עדכן פריט</a>
+                                    <span><i id="delproductbtn" class="fa fa-trash-o delprod" style="font-size: 40px;color: red;margin-left: 10px;"></i></span>
+                                </div>
+                                
                             </div>
                         </div>
-                    </div>
-                    {% endfor%}
+                    </div> 
                 </div>
+                    {% endfor%}
             </div>
+        </div>
         </section>
+
+        <script>
+
+            function deleteproduct(id) {
+                     var settings = {
+                         "async": true,
+                         "crossDomain": true,
+                         "url": "delete_Product/" + id,
+                         "method": "DELETE",
+                         "headers": {
+                             "cache-control": "no-cache",
+                             "postman-token": "28ea8360-5af0-1d11-e595-485a109760f2"
+                         }
+                     }
+                     //Yes No ?
+                     Swal.fire({
+                title: "Are you sure?",
+                text: "You will not be able to recover this data",
+                icon: "warning",
+                showCancelButton: true,
+                confirmButtonColor: "#DD6B55",
+                confirmButtonText: "Yes, delete it!",
+                cancelButtonText: "No, cancel!",
+                reverseButtons: true,
+                preConfirm: () => {
+                    return $.ajax(settings).done(function (response) {
+                        Swal.fire("Deleted!", "Product has been deleted.", "success");
+                        location.reload();
+                    });
+                }
+            });
+             
+                 }
+            
+            $(document).ready(function() {
+                
+                $(".delprod").each(function(index) {
+                    $(this).on("click", function() {
+                        var prod_id = $(this).closest(".card-body").find("p").text();
+                        console.log(prod_id);
+                        deleteproduct(prod_id); 
+                    });
+                });
+
+
+
+                //filter
+                $("#productFilter").on("keyup", function() {
+                var value = $(this).val().toLowerCase();
+                $(".card-body").filter(function() {
+                    $(this).toggle($(this).text().toLowerCase().indexOf(value) > -1);
+                });
+            });
+
+            });
+            </script>
     {% endblock %}
 
 
 
-
-
-<!-- <form action="/add-items" method="POST">
-    <select name="select_catgories">
-        {% for cat in categories%}
-        <option value="{{cat}}">{{cat}}</option>
-        {% endfor %}   
-    </select>
-
-    <select name="select_items">
-        {% for item in all_items%}
-        <option value="{{item}}">{{item}}</option>
-        {% endfor %}   
-    </select>
-
-    <input type="submit" value="הוסף פריט לעגלה">
-</form> -->

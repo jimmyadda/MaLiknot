@@ -1,0 +1,42 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container">
+                    <div class="card mb-3" >
+                        <div class="row g-0">
+                        <div class="col-md-4">                           
+                        </div>
+                        <div class="col-md-8">
+                            <div class="card-body">
+                        <center>
+                            <h1>Edit Product</h1>
+                            <form method="POST">
+                                <label for="name">Name:</label>
+                                <input type="text" id="name" name="name" value="" required><br>
+                                
+                                <label for="price">Price:</label>
+                                <input type="number" min="0" step="any" id="price" name="price" value="" required><br>
+                                
+                                <label for="unit">unit:</label>
+                                <textarea id="unit" name="unit" required></textarea><br>
+
+                                <label for="category">Choose product categorie:</label><br>
+                                <select name="category" id="category">
+                                  {%for category in categories%}
+                                  <option value= {{category.id}} >{{category.name}}</option>
+                                  {%endfor%}
+                                </select> <br>
+
+
+                                <br><button type="submit" class="btn btn-primary" >Add Product</button>
+                            </form>
+                            <a href="{{ url_for('index') }}" class="btn btn-secondary">Home</a>
+                        </center>
+
+                            </div>
+                        </div>
+                        </div>
+                    </div>
+</div>
+
+{% endblock %}

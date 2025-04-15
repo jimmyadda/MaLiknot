@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>{{ list_name }} - Grocery List</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body class="p-4">
+
+<div class="container">
+  <h1 class="mb-3">🛒 {{ list_name }}</h1>
+
+  <form method="POST" class="d-flex mb-3">
+    <input type="text" name="item" class="form-control me-2" placeholder="Add item..." required>
+    <button name="action" value="add" class="btn btn-primary">Add</button>
+  </form>
+
+  <ul class="list-group mb-3">
+    {% for item in items %}
+      <li class="list-group-item d-flex justify-content-between align-items-center
+          {% if item.collected %} list-group-item-success {% endif %}">
+        <span>
+          {{ loop.index }}. {{ item.name }}
+          {% if item.collected %}<strong>(Collected)</strong>{% endif %}
+        </span>
+        <div>
+          <form method="POST" class="d-inline">
+            <input type="hidden" name="index" value="{{ loop.index0 }}">
+            <button name="action" value="toggle" class="btn btn-sm btn-outline-secondary">
+              {% if item.collected %}Unmark{% else %}Collect{% endif %}
+            </button>
+          </form>
+          <form method="POST" class="d-inline">
+            <input type="hidden" name="index" value="{{ loop.index0 }}">
+            <button name="action" value="remove" class="btn btn-sm btn-outline-danger">Remove</button>
+          </form>
+        </div>
+      </li>
+    {% else %}
+      <li class="list-group-item">No items yet.</li>
+    {% endfor %}
+  </ul>
+
+  <a href="{{ url_for('export', list_name=list_name) }}" class="btn btn-success">Export CSV</a>
+  <a href="{{ url_for('index') }}" class="btn btn-secondary">Back to All Lists</a>
+</div>
+
+</body>
+</html>

@@ -13,6 +13,13 @@ def create_db():
     
     # יצירת טבלאות
     cursor.execute('''
+                CREATE TABLE IF NOT EXISTS lists (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                name TEXT UNIQUE
+            );
+    ''')
+    
+    cursor.execute('''
     CREATE TABLE IF NOT EXISTS categories (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         name TEXT UNIQUE NOT NULL
@@ -29,6 +36,17 @@ def create_db():
         FOREIGN KEY (category_id) REFERENCES categories(id)
     )
     ''')
+    cursor.execute('''
+    CREATE TABLE IF NOT EXISTS product_in_list (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    list_id INTEGER,
+    product_id INTEGER,
+    collected INTEGER DEFAULT 0,
+    notes TEXT,
+    quantity INTEGER,
+    FOREIGN KEY (list_id) REFERENCES lists(id),
+    FOREIGN KEY (product_id) REFERENCES products(id)
+)''')
     #Acc
     cursor.execute('''CREATE TABLE IF NOT EXISTS accounts (
 	"userid"	TEXT,
