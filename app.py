@@ -169,7 +169,6 @@ def product_add():
       category_id = request.form['category']
       price =  request.form['price']
       unit =  request.form['unit']
-      print(item,category_id)
       sql= f"INSERT INTO products (name,price,unit,category_id) VALUES ('{item}', '{price}', '{unit}', '{category_id}');"
       ok = database_write(sql)
       print(ok)
@@ -225,10 +224,30 @@ def view_list(list_id):
     #items  in list
     items = database_read(f"select * from product_in_list where list_id ='{list_id}';")
     list_data = database_read(f"select name from lists where id ='{list_id}';")
-    print(list_data)
     list_name = list_data[0]['name']
-    print(list_id)
-    return render_template("list.html", list_id=list_id, items=items,list_name=list_name)
+    items_data = database_read(f"select p.*,cat.name as catName from products p left JOIN categories cat on category_id = cat.id")
+    categories =  database_read(f"select * from categories order by name;")
+    return render_template("list.html", list_id=list_id, items=items,list_name=list_name,all_items=items_data,categories=categories)
+
+@app.route("/add_product_to_list", methods=["POST"])
+def add_product_to_list():
+    list_id = request.form.get("list_id", "").strip()
+    product_id = request.form.get("product_id", "").strip()
+    QTY = request.form.get("QTY", "").strip()
+    print(list_id,product_id,QTY)
+
+    if not list_id or not product_id:
+        return "Missing list_name or product_name", 400
+    # Check if already in list
+    existing = database_read(f"SELECT 1 FROM product_in_list WHERE list_id ='{list_id}' AND product_id = '{product_id}';")
+
+    if not existing:
+      sql= f"INSERT INTO product_in_list (list_id, product_id,quantity, collected) VALUES ('{list_id}', '{product_id}','{QTY}',0);"
+      ok = database_write(sql)
+      print(ok)
+      if ok == 1 :
+        flash(f"Product Added to list!", "success")
+    return redirect(url_for("view_list", list_name=list_name))
 
 
 @app.route("/export/<list_name>")
