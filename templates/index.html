@@ -21,10 +21,10 @@
                 </form>
                 <h3>Existing Lists</h3>
                 <ul class="list-group">
-                  {% for list_name in lists %}
+                  {% for list in lists %}
                     <li class="list-group-item d-flex justify-content-between align-items-center">
-                      {{ list_name }}
-                      <a href="{{ url_for('view_list', list_name=list_name) }}" class="btn btn-sm btn-outline-primary">Open</a>
+                        {{ list['id'] }}. {{ list['name'] }}
+                      <a href="{{ url_for('view_list', list_id=list['id']) }}" class="btn btn-sm btn-outline-primary">Open</a>
                     </li>
                   {% else %}
                     <li class="list-group-item">No lists yet.</li>

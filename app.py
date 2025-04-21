@@ -125,13 +125,14 @@ def index():
                 ok = database_write(sql)
                 #get list id...
                 list_id =  database_read(f"select id from lists where name ='{list_name}';")
-                print(list_id[0]['id'])
                 curren_list= list_id[0]['id']
                 return redirect(url_for("view_list", list_id=curren_list))  
-                
+            
+        all_lists =  database_read(f"select * from lists order by id desc;")      
         data = database_read(f"select p.*,cat.name as catName from products p left JOIN categories cat on category_id = cat.id")
         categories =  database_read(f"select * from categories order by name;")
-        return render_template('index.html',user=flask_login.current_user, all_items=data,categories=categories)
+        
+        return render_template('index.html',user=flask_login.current_user,lists=all_lists, all_items=data,categories=categories)
     else:
         return redirect("/login")
 
@@ -139,6 +140,7 @@ def index():
 def add_items():
     data = dict(request.values)
     return render_template('index2.html', all_items=data)
+
 
 
 @app.teardown_appcontext
@@ -178,7 +180,6 @@ def product_add():
         return render_template('index.html',messages=message)  
     else:
         return render_template('add_product.html',categories=categories) 
-
 
 @app.route('/product/<int:product_id>/edit', methods=['GET', 'POST'])
 def edit_product(product_id):
@@ -222,19 +223,30 @@ def delete_product(product_id):
 @app.route("/list/<int:list_id>", methods=["GET", "POST"])
 def view_list(list_id):
     #items  in list
+    list_items_data = []  # make this a list
     items = database_read(f"select * from product_in_list where list_id ='{list_id}';")
-    list_data = database_read(f"select name from lists where id ='{list_id}';")
-    list_name = list_data[0]['name']
+    list_data = database_read(f"select * from product_in_list where list_id ='{list_id}';")
+    if items:
+        for item in items:
+            product_id = item['product_id']         
+            item_data =  database_read(f"select pl.*,p.* from products p inner JOIN product_in_list  pl on pl.product_id = p.id where p.id ='{product_id}';")
+
+            if item_data:
+                list_items_data.append(item_data[0])
+    #print(list_items_data)
+    list_name = database_read(f"select name from lists where id ='{list_id}';")[0]['name']
+    
     items_data = database_read(f"select p.*,cat.name as catName from products p left JOIN categories cat on category_id = cat.id")
-    categories =  database_read(f"select * from categories order by name;")
-    return render_template("list.html", list_id=list_id, items=items,list_name=list_name,all_items=items_data,categories=categories)
+    categories =  database_read(f"select * from categories order by name;")   
+    return render_template("list.html", list_id=list_id,list_data=list_data, items=list_items_data,list_name=list_name,all_items=items_data,categories=categories)
 
 @app.route("/add_product_to_list", methods=["POST"])
 def add_product_to_list():
     list_id = request.form.get("list_id", "").strip()
     product_id = request.form.get("product_id", "").strip()
     QTY = request.form.get("QTY", "").strip()
-    print(list_id,product_id,QTY)
+    notes = request.form.get("notes", "").strip()
+    print('notes' , notes)
 
     if not list_id or not product_id:
         return "Missing list_name or product_name", 400
@@ -242,13 +254,52 @@ def add_product_to_list():
     existing = database_read(f"SELECT 1 FROM product_in_list WHERE list_id ='{list_id}' AND product_id = '{product_id}';")
 
     if not existing:
-      sql= f"INSERT INTO product_in_list (list_id, product_id,quantity, collected) VALUES ('{list_id}', '{product_id}','{QTY}',0);"
-      ok = database_write(sql)
-      print(ok)
-      if ok == 1 :
-        flash(f"Product Added to list!", "success")
-    return redirect(url_for("view_list", list_name=list_name))
+      try:
+        sql= f"INSERT INTO product_in_list (list_id, product_id,quantity,notes, collected) VALUES ('{list_id}', '{product_id}','{QTY}','{notes}',0);"
+        ok = database_write(sql)
+        print(ok)
+        if ok == 1 :
+            flash(f"Product Added to list!", "success")
+            return render_template('list.html',list_id=list_id)
+        else:
+            flash(f"Failed to add product", "Error")  
+            return jsonify({'error': 'Missing required fields'}), 400
+        
+      except sqlite3.Error as e:
+        print("SQLite error:", e)
+        flash(f"Database error: {e}", "danger")
+        return jsonify({'error': str(e)}), 500
 
+@app.route('/update_collected/<int:item_id>', methods=['POST'])
+def update_collected(item_id):
+    try:
+        data = request.get_json()
+        collected = data.get('collected', 0)
+        list_id = data.get('list_id', 0)
+        product_id = data.get('product_id', 0)
+        sql = f"UPDATE product_in_list SET collected = '{collected}' WHERE product_id = '{product_id}' and list_id= '{list_id}'"
+        print(sql)
+        ok = database_write(sql)
+        if ok == 1:
+            return jsonify({'message': 'Collected status updated'}), 200
+        else:
+            return jsonify({'error': 'Update failed'}), 500
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+
+@app.context_processor
+def inject_collected_count():
+    def get_collected_count(list_id=None):
+        if list_id is None:
+            return 0
+        sql = f"SELECT COUNT(*) as count FROM product_in_list WHERE list_id = '{list_id}' AND collected = 1"
+        print(sql)
+        result = database_read(sql)
+        print(result)
+        return result[0]['count'] if result else 0
+
+    return dict(get_collected_count=get_collected_count)
 
 @app.route("/export/<list_name>")
 def export(list_name):
@@ -264,6 +315,15 @@ def export(list_name):
     output.seek(0)
     return send_file(io.BytesIO(output.getvalue().encode()), as_attachment=True,
                      download_name=f"{list_name}_grocery_list.csv", mimetype="text/csv")
+
+
+@app.after_request
+def add_header(response):
+    if request.path.endswith('service-worker.js'):
+        response.headers['Content-Type'] = 'application/javascript'
+    if request.path.endswith('manifest.json'):
+        response.headers['Content-Type'] = 'application/manifest+json'
+    return response
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port = 80, debug=True)

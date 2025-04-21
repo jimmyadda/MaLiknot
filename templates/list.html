@@ -1,10 +1,7 @@
-<!doctype html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <title>{{ list_name }} - Grocery List</title>
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-</head>
+{% extends 'base.html' %}
+
+{% block content %}
+
 <style>
   .qty-wrapper {
     display: inline-flex;
@@ -33,13 +30,51 @@
     float:right;
     padding-right:4px;
     content:"-";}
+    .delete-btn {
+  background-color: red;
+  border: none;
+  color: white;
+  cursor: pointer;
+}
 </style>
+
+
+<form class="d-flex">
+  <button class="btn btn-outline-dark" type="submit">
+      <i class="bi-cart-fill me-1"></i>
+      Cart
+      <span class="badge bg-dark text-white ms-1 rounded-pill">{{ get_collected_count(list_id) }}</span>
+  </button>
+</form>
 
 <body class="p-4">
 
+<!--All items -->
 <div class="container">
-  <h1 class="mb-3">🛒 {{ list_name }}   </h1>
+  <h1 class="mb-3">🛒 Products in list:  {{ list_name }}   </h1>
   <p id = "listid" style="display: none;">{{ list_id }}</p>
+
+  <ul id="itemsinlist"  class="list-group mb-3">
+    {% for item in items %}
+      <li class="list-group-item d-flex justify-content-between align-items-center
+          {% if item.collected %} list-group-item-success {% endif %}">
+        <span>
+          {{ loop.index }}. &nbsp; {{ item['name'] }}  &nbsp; {% if item.collected %}<strong>(נאסף)</strong>{% endif %}   <br> Price: {{ item['price'] }}  &nbsp;  Notes:  {% if item.notes %}<strong>{{ item['notes']}}</strong>{% endif %}          
+        </span>
+          <div class="form-check">
+            <input class="form-check-input position-static" data-item-id="{{ item['product_id'] }}" type="checkbox" id="blankCheckbox" onchange="updateCollected(this)" value="option1" {% if item.collected %}checked{% endif %} >
+            <span class="">|</span> <!-- separator -->
+              <button id="del_prod" class="delete-btn" title="remove product from list"><i class="fa fa-trash"></i></button>
+          </div>
+      </li>
+    {% else %}
+      <li class="list-group-item">No items yet.</li>
+    {% endfor %}
+  </ul>
+
+
+
+
   <form method="POST" class="d-flex mb-3">
     <div class="container container-box">
       <h1 class="mb-4"> Add Products to list</h1>
@@ -69,6 +104,7 @@
                   </div>
                   <!-- Product actions-->
                   <div  class="action-wrapper">
+                    <input type="text" id="notes" name="notes" placeholder="add notes.."><br>
                       <div  style="display: flex;" class="text-center"><a class="btn btn-outline-dark mt-auto" href="#" onclick="addProductToList(this); return false;" >הוסף פריט לרשימה</a>
                       </div>
                       
@@ -81,71 +117,36 @@
 </div>
   </form>
 
-  <ul class="list-group mb-3">
-    {% for item in items %}
-      <li class="list-group-item d-flex justify-content-between align-items-center
-          {% if item.collected %} list-group-item-success {% endif %}">
-        <span>
-          {{ loop.index }}. {{ item.name }}
-          {% if item.collected %}<strong>(Collected)</strong>{% endif %}
-        </span>
-        <div>
-          <form method="POST" class="d-inline">
-            <input type="hidden" name="index" value="{{ loop.index0 }}">
-            <button name="action" value="toggle" class="btn btn-sm btn-outline-secondary">
-              {% if item.collected %}Unmark{% else %}Collect{% endif %}
-            </button>
-          </form>
-          <form method="POST" class="d-inline">
-            <input type="hidden" name="index" value="{{ loop.index0 }}">
-            <button name="action" value="remove" class="btn btn-sm btn-outline-danger">Remove</button>
-          </form>
-        </div>
-      </li>
-    {% else %}
-      <li class="list-group-item">No items yet.</li>
-    {% endfor %}
-  </ul>
-
   <a href="{{ url_for('export', list_name=list_name) }}" class="btn btn-success">Export CSV</a>
   <a href="{{ url_for('index') }}" class="btn btn-secondary">Back to All Lists</a>
 </div>
 
 <script>
   function addProductToList(anchor) {
-    console.log(anchor.closest('.card-body'));
-
-
+    //get clicked card data
     const card = anchor.closest('.card-body'); // or any container class
     const qtyInput = card.querySelector('.qty-input');
     const qty = parseInt(qtyInput.value) || 1;   
     const listid =  document.querySelector('#listid').textContent
     const productid = card.querySelector('#prodid').textContent
-
-    
-    fetch("/add_product_to_list", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/x-www-form-urlencoded"
-      },
-      body: `list_id=${encodeURIComponent(listid)}&product_id=${encodeURIComponent(productid)}
-      &QTY=${encodeURIComponent(qty)}`
-    })
-    .then(response => {
-      if (response.redirected) {
-        window.location.href = response.url; // Redirect to updated list
-      } else {
-        return response.text();
-      }
-    })
-    .then(result => {
-      console.log(result);
-    })
-    .catch(err => {
-      console.error("Error adding product:", err);
-    });
-  }
-
+    const notes = card.querySelector('#notes').value
+      fetch("/add_product_to_list", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/x-www-form-urlencoded"
+        },
+        body: `list_id=${encodeURIComponent(listid)}&product_id=${encodeURIComponent(productid)}
+        &QTY=${encodeURIComponent(qty)}&notes=${encodeURIComponent(notes)}`
+      })
+      .then(data => {
+          if (data.status == 200) {
+            $.notify("פריט התווסף לרשימה", "success");
+          } else {
+            $.notify("Error inserting Product", "error" );
+          }
+          setTimeout(function (){ location.reload()}, 2000); 
+        });
+    }
 
   function changeQty(button,delta) {
     const wrapper = button.closest(".qty-wrapper");
@@ -154,7 +155,46 @@
     current = Math.max(1, current + delta);
     input.value = current;
   }
+
+  function updateCollected(checkbox) {
+    const itemId = checkbox.dataset.itemId;
+    const collected = checkbox.checked ? 1 : 0;
+    const listid =  document.querySelector('#listid').textContent
+    fetch(`/update_collected/${itemId}`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-Requested-With': 'XMLHttpRequest'
+        },
+        body: JSON.stringify({list_id:listid, product_id: itemId, collected: collected })
+    })
+    .then(data => {
+          if (data.status == 200) {
+            $.notify("פריט נאסף", "success");            
+          } else {
+            $.notify("Error inserting Product", "error" );
+          }
+          setTimeout(function (){ location.reload()}, 2000);           
+        });
+}
+
+
+  $(document).ready(function() {
+
+    $('#itemsinlist').on('click', '.delete-btn', function () {
+        console.log($(this));
+    });
+
+        //filter
+        $("#productFilter").on("keyup", function() {
+                var value = $(this).val().toLowerCase();
+                $(".card-body").filter(function() {
+                    $(this).toggle($(this).text().toLowerCase().indexOf(value) > -1);
+                });
+        });
+
+});
 </script>
 
 </body>
-</html>
+{% endblock %}
