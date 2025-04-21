@@ -240,6 +240,30 @@ def view_list(list_id):
     categories =  database_read(f"select * from categories order by name;")   
     return render_template("list.html", list_id=list_id,list_data=list_data, items=list_items_data,list_name=list_name,all_items=items_data,categories=categories)
 
+
+@app.route('/delete_List/<int:List_id>', methods=['DELETE', 'POST'])
+@flask_login.login_required
+def delete_List(List_id):
+    user = flask_login.current_user.get_dict()
+    data=  dict(request.values)
+    print("data",data)
+    id = List_id
+
+    sql = f"Delete from lists where id ='{id}' ;"
+
+    ok = database_write(sql)
+    if ok == 1:            
+            flash(f"List deleted successfully!", "success")
+            message = 'List deleted successfully' 
+            #refresh form                                  
+    else:
+        flash(f"Error deleting List!", "error") 
+    data = database_read(f"select p.*,cat.name as catName from products p left JOIN categories cat on category_id = cat.id")
+    categories =  database_read(f"select * from categories order by name;")
+    return render_template('index.html', all_items=data,categories=categories) 
+
+
+
 @app.route("/add_product_to_list", methods=["POST"])
 def add_product_to_list():
     list_id = request.form.get("list_id", "").strip()
