@@ -241,6 +241,7 @@ def view_list(list_id):
     return render_template("list.html", list_id=list_id,list_data=list_data, items=list_items_data,list_name=list_name,all_items=items_data,categories=categories)
 
 
+
 @app.route('/delete_List/<int:List_id>', methods=['DELETE', 'POST'])
 @flask_login.login_required
 def delete_List(List_id):
