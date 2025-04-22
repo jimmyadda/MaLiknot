@@ -144,7 +144,7 @@
           } else {
             $.notify("Error inserting Product", "error" );
           }
-          setTimeout(function (){ location.reload()}, 2000); 
+          setTimeout(function (){ window.location.href = window.location.href; }, 2000); 
         });
     }
 
@@ -174,15 +174,42 @@
           } else {
             $.notify("Error inserting Product", "error" );
           }
-          setTimeout(function (){ location.reload()}, 2000);           
+          setTimeout(function (){ window.location.href = window.location.href;}, 2000);           
         });
 }
+
+function DelProductFromList(button) {
+    //get clicked card data
+    const data = button.closest('.form-check'); // or any container class
+    console.log(data)
+    const listid =  document.querySelector('#listid').textContent
+    const productid = data.querySelector('#blankCheckbox').dataset.itemId
+    console.log(productid,listid)
+
+      fetch("/Remove_product_from_list", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/x-www-form-urlencoded"
+        },
+        body: `list_id=${encodeURIComponent(listid)}&product_id=${encodeURIComponent(productid)}`
+      })
+      .then(data => {
+          if (data.status == 200) {
+            $.notify("פריט הוסר מרשימה", "success");
+          } else {
+            $.notify("Error deleting Product", "error" );
+          }
+          setTimeout(function (){ window.location.href = window.location.href; }, 2000); 
+        }); 
+    }
 
 
   $(document).ready(function() {
 
     $('#itemsinlist').on('click', '.delete-btn', function () {
         console.log($(this));
+        //deleteitemfromlist...
+        DelProductFromList(this);
     });
 
         //filter

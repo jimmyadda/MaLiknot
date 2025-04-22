@@ -99,7 +99,8 @@ def login_request():
             flask_login.login_user(user)
             productsdata = database_read(f"select p.*,cat.name as catName from products p left JOIN categories cat on category_id = cat.id")
             categories = database_read(f"select * from categories order by name;")
-            return render_template('index.html', all_items=productsdata,categories=categories)
+            all_lists =  database_read(f"select * from lists order by id desc;") 
+            return render_template('index.html', all_items=productsdata,lists=all_lists,categories=categories)
         
         else: #password incorrect
            logger.info(f"Login Failed - '{form['userid']}'  date: {str(datetime.now())}")
@@ -140,8 +141,6 @@ def index():
 def add_items():
     data = dict(request.values)
     return render_template('index2.html', all_items=data)
-
-
 
 @app.teardown_appcontext
 def close_connection(exception):
@@ -240,8 +239,6 @@ def view_list(list_id):
     categories =  database_read(f"select * from categories order by name;")   
     return render_template("list.html", list_id=list_id,list_data=list_data, items=list_items_data,list_name=list_name,all_items=items_data,categories=categories)
 
-
-
 @app.route('/delete_List/<int:List_id>', methods=['DELETE', 'POST'])
 @flask_login.login_required
 def delete_List(List_id):
@@ -312,7 +309,32 @@ def update_collected(item_id):
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
+@app.route("/Remove_product_from_list", methods=['DELETE', 'POST'])
+def Remove_product_from_list():
+    list_id = request.form.get("list_id", "").strip()
+    product_id = request.form.get("product_id", "").strip()
 
+    print('list_id' , list_id)
+
+    if not list_id or not product_id:
+        return "Missing list_name or product_name", 400
+
+    try:
+        sql= f"Delete from product_in_list where list_id= '{list_id}' and  product_id = '{product_id}';"
+        ok = database_write(sql)
+        print(ok)
+        if ok == 1 :
+            flash(f"Product removed from list!", "success")
+            return render_template('list.html',list_id=list_id)
+        else:
+            flash(f"Failed to remove product", "Error")  
+            return jsonify({'error': 'Missing required fields'}), 400
+        
+    except sqlite3.Error as e:
+        print("SQLite error:", e)
+        flash(f"Database error: {e}", "danger")
+        return jsonify({'error': str(e)}), 500
+      
 @app.context_processor
 def inject_collected_count():
     def get_collected_count(list_id=None):
