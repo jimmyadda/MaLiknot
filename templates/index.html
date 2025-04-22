@@ -109,7 +109,7 @@
              
                  }
   
-                 function deletelist(id) {
+            function deletelist(id) {
                      var settings = {
                          "async": true,
                          "crossDomain": true,
@@ -140,7 +140,6 @@
              
                  }
 
-
             $(document).ready(function() {
                 
                 $(".delprod").each(function(index) {
@@ -155,18 +154,24 @@
                     $(this).on("click", function() {
                         var list_id = $(this).closest(".card-body").find(".text-muted").text();
                         console.log(list_id);
-                        deletelist(list_id);
-                        //deleteproduct(prod_id); 
+                        deletelist(list_id);                    
                     });
                 });
 
 
 
                 //filter
-                $("#productFilter").on("keyup", function() {
+                $("#productFilter").on("keyup", function () {
+      
                 var value = $(this).val().toLowerCase();
-                $(".card-body").filter(function() {
-                    $(this).toggle($(this).text().toLowerCase().indexOf(value) > -1);
+
+                $(".card").each(function () {
+                    const text = $(this).text().toLowerCase();
+                    if (text.indexOf(value) > -1) {
+                    $(this).show(); // fully displays the card
+                    } else {
+                    $(this).hide(); // removes it from layout
+                    }
                 });
             });
 

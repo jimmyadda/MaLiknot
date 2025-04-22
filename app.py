@@ -100,7 +100,7 @@ def login_request():
             productsdata = database_read(f"select p.*,cat.name as catName from products p left JOIN categories cat on category_id = cat.id")
             categories = database_read(f"select * from categories order by name;")
             all_lists =  database_read(f"select * from lists order by id desc;") 
-            return render_template('index.html', all_items=productsdata,lists=all_lists,categories=categories)
+            return render_template('index.html',user=flask_login.current_user, all_items=productsdata,lists=all_lists,categories=categories)
         
         else: #password incorrect
            logger.info(f"Login Failed - '{form['userid']}'  date: {str(datetime.now())}")
@@ -127,7 +127,7 @@ def index():
                 #get list id...
                 list_id =  database_read(f"select id from lists where name ='{list_name}';")
                 curren_list= list_id[0]['id']
-                return redirect(url_for("view_list", list_id=curren_list))  
+                return redirect(url_for("view_list",user=flask_login.current_user, list_id=curren_list))  
             
         all_lists =  database_read(f"select * from lists order by id desc;")      
         data = database_read(f"select p.*,cat.name as catName from products p left JOIN categories cat on category_id = cat.id")

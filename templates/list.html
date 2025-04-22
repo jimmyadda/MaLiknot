@@ -105,7 +105,7 @@
       <li class="list-group-item d-flex justify-content-between align-items-center
           {% if item.collected %} list-group-item-success {% endif %}">
         <span>
-          {{ loop.index }}. &nbsp; {{ item['name'] }}  &nbsp; {% if item.collected %}<strong>(נאסף)</strong>{% endif %}   <br> Price: {{ item['price'] }}  &nbsp;  Notes:  {% if item.notes %}<strong>{{ item['notes']}}</strong>{% endif %}          
+          {{ loop.index }}. &nbsp; {{ item['name'] }}  &nbsp; {% if item.collected %}<strong>(נאסף)</strong>{% endif %}   <br>Quantity: {{ item['quantity'] }}  &nbsp;  Price: {{ item['price'] }}  &nbsp;  Notes:  {% if item.notes %}<strong>{{ item['notes']}}</strong>{% endif %}          
         </span>
           <div class="form-check">
             <input class="form-check-input position-static" data-item-id="{{ item['product_id'] }}" type="checkbox" id="blankCheckbox" onchange="updateCollected(this)" value="option1" {% if item.collected %}checked{% endif %} >
@@ -170,6 +170,7 @@
 </div>
 
 <script>
+
   function addProductToList(anchor) {
     //get clicked card data
     const card = anchor.closest('.card-body'); // or any container class
@@ -283,13 +284,28 @@ function DelProductFromList(button) {
     });
 
         //filter
-        $("#productFilter").on("keyup", function() {
+/*         $("#productFilter").on("keyup", function() {
                 var value = $(this).val().toLowerCase();
-                $(".card-body").filter(function() {
+                $(".card").filter(function() {
                     $(this).toggle($(this).text().toLowerCase().indexOf(value) > -1);
                 });
-        });
+        }); */
 
+
+    $("#productFilter").on("keyup", function () {
+      
+      var value = $(this).val().toLowerCase();
+
+      $(".card").each(function () {
+        const text = $(this).text().toLowerCase();
+        if (text.indexOf(value) > -1) {
+          $(this).show(); // fully displays the card
+        } else {
+          $(this).hide(); // removes it from layout
+        }
+      });
+    });
+        
 });
 </script>
 

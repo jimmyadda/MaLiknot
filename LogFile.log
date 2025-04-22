@@ -2549,3 +2549,84 @@ TypeError: The view function for 'add_product_to_list' did not return a valid re
 {'userid': 'jimmyadda', 'email': 'addajimmy@gmail.com', 'name': 'Defaccount'}Has Logged in
 {'userid': 'jimmyadda', 'email': 'addajimmy@gmail.com', 'name': 'Defaccount'}Has Logged in
 {'userid': 'jimmyadda', 'email': 'addajimmy@gmail.com', 'name': 'Defaccount'}Has Logged in
+{'userid': 'jimmyadda', 'email': 'addajimmy@gmail.com', 'name': 'Defaccount'}Has Logged in
+{'userid': 'jimmyadda', 'email': 'addajimmy@gmail.com', 'name': 'Defaccount'}Has Logged in
+{'userid': 'jimmyadda', 'email': 'addajimmy@gmail.com', 'name': 'Defaccount'}Has Logged in
+{'userid': 'jimmyadda', 'email': 'addajimmy@gmail.com', 'name': 'Defaccount'}Has Logged in
+Login successfull - 'jimmyadda'  date: 2025-04-22 22:13:43.218030
+{'userid': 'jimmyadda', 'email': 'addajimmy@gmail.com', 'name': 'Defaccount'}Has Logged in
+Login successfull - 'jimmyadda'  date: 2025-04-22 22:13:57.797024
+{'userid': 'jimmyadda', 'email': 'addajimmy@gmail.com', 'name': 'Defaccount'}Has Logged in
+Login successfull - 'jimmyadda'  date: 2025-04-22 22:14:04.163441
+{'userid': 'jimmyadda', 'email': 'addajimmy@gmail.com', 'name': 'Defaccount'}Has Logged in
+Exception on /login [POST]
+Traceback (most recent call last):
+  File "C:\Python\Python312\Lib\site-packages\flask\app.py", line 1463, in wsgi_app
+    response = self.full_dispatch_request()
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Python\Python312\Lib\site-packages\flask\app.py", line 872, in full_dispatch_request
+    rv = self.handle_user_exception(e)
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Python\Python312\Lib\site-packages\flask\app.py", line 870, in full_dispatch_request
+    rv = self.dispatch_request()
+         ^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Python\Python312\Lib\site-packages\flask\app.py", line 855, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)  # type: ignore[no-any-return]
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ajimmy\Projects\MaLiknot\MaLiknot\app.py", line 89, in login_request
+    users = database_read("select * from accounts where userid=:userid",form)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ajimmy\Projects\MaLiknot\MaLiknot\HandelDB.py", line 32, in database_read
+    db.execute(sql, data)
+sqlite3.ProgrammingError: You did not supply a value for binding parameter :userid.
+Login successfull - 'jimmyadda'  date: 2025-04-22 22:16:56.788208
+{'userid': 'jimmyadda', 'email': 'addajimmy@gmail.com', 'name': 'Defaccount'}Has Logged in
+Exception on /login [POST]
+Traceback (most recent call last):
+  File "C:\Python\Python312\Lib\site-packages\flask\app.py", line 1463, in wsgi_app
+    response = self.full_dispatch_request()
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Python\Python312\Lib\site-packages\flask\app.py", line 872, in full_dispatch_request
+    rv = self.handle_user_exception(e)
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Python\Python312\Lib\site-packages\flask\app.py", line 870, in full_dispatch_request
+    rv = self.dispatch_request()
+         ^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Python\Python312\Lib\site-packages\flask\app.py", line 855, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)  # type: ignore[no-any-return]
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ajimmy\Projects\MaLiknot\MaLiknot\app.py", line 89, in login_request
+    users = database_read("select * from accounts where userid=:userid",form)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ajimmy\Projects\MaLiknot\MaLiknot\HandelDB.py", line 32, in database_read
+    db.execute(sql, data)
+sqlite3.ProgrammingError: You did not supply a value for binding parameter :userid.
+{'userid': 'jimmyadda', 'email': 'addajimmy@gmail.com', 'name': 'Defaccount'}Has Logged in
+{'userid': 'jimmyadda', 'email': 'addajimmy@gmail.com', 'name': 'Defaccount'}Has Logged in
+{'userid': 'jimmyadda', 'email': 'addajimmy@gmail.com', 'name': 'Defaccount'}Has Logged in
+{'userid': 'jimmyadda', 'email': 'addajimmy@gmail.com', 'name': 'Defaccount'}Has Logged in
+{'userid': 'jimmyadda', 'email': 'addajimmy@gmail.com', 'name': 'Defaccount'}Has Logged in
+{'userid': 'jimmyadda', 'email': 'addajimmy@gmail.com', 'name': 'Defaccount'}Has Logged in
+{'userid': 'jimmyadda', 'email': 'addajimmy@gmail.com', 'name': 'Defaccount'}Has Logged in
+{'userid': 'jimmyadda', 'email': 'addajimmy@gmail.com', 'name': 'Defaccount'}Has Logged in
+{'userid': 'jimmyadda', 'email': 'addajimmy@gmail.com', 'name': 'Defaccount'}Has Logged in
+{'userid': 'jimmyadda', 'email': 'addajimmy@gmail.com', 'name': 'Defaccount'}Has Logged in
+{'userid': 'jimmyadda', 'email': 'addajimmy@gmail.com', 'name': 'Defaccount'}Has Logged in
+{'userid': 'jimmyadda', 'email': 'addajimmy@gmail.com', 'name': 'Defaccount'}Has Logged in
+{'userid': 'jimmyadda', 'email': 'addajimmy@gmail.com', 'name': 'Defaccount'}Has Logged in
+{'userid': 'jimmyadda', 'email': 'addajimmy@gmail.com', 'name': 'Defaccount'}Has Logged in
+{'userid': 'jimmyadda', 'email': 'addajimmy@gmail.com', 'name': 'Defaccount'}Has Logged in
+{'userid': 'jimmyadda', 'email': 'addajimmy@gmail.com', 'name': 'Defaccount'}Has Logged in
+{'userid': 'jimmyadda', 'email': 'addajimmy@gmail.com', 'name': 'Defaccount'}Has Logged in
+{'userid': 'jimmyadda', 'email': 'addajimmy@gmail.com', 'name': 'Defaccount'}Has Logged in
+{'userid': 'jimmyadda', 'email': 'addajimmy@gmail.com', 'name': 'Defaccount'}Has Logged in
+{'userid': 'jimmyadda', 'email': 'addajimmy@gmail.com', 'name': 'Defaccount'}Has Logged in
+{'userid': 'jimmyadda', 'email': 'addajimmy@gmail.com', 'name': 'Defaccount'}Has Logged in
+{'userid': 'jimmyadda', 'email': 'addajimmy@gmail.com', 'name': 'Defaccount'}Has Logged in
+{'userid': 'jimmyadda', 'email': 'addajimmy@gmail.com', 'name': 'Defaccount'}Has Logged in
+{'userid': 'jimmyadda', 'email': 'addajimmy@gmail.com', 'name': 'Defaccount'}Has Logged in
+{'userid': 'jimmyadda', 'email': 'addajimmy@gmail.com', 'name': 'Defaccount'}Has Logged in
+{'userid': 'jimmyadda', 'email': 'addajimmy@gmail.com', 'name': 'Defaccount'}Has Logged in
+{'userid': 'jimmyadda', 'email': 'addajimmy@gmail.com', 'name': 'Defaccount'}Has Logged in
+{'userid': 'jimmyadda', 'email': 'addajimmy@gmail.com', 'name': 'Defaccount'}Has Logged in
+{'userid': 'jimmyadda', 'email': 'addajimmy@gmail.com', 'name': 'Defaccount'}Has Logged in
