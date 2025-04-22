@@ -36,6 +36,52 @@
   color: white;
   cursor: pointer;
 }
+
+@media (max-width: 768px) {
+  .notifyjs-corner {
+    top: 50% !important;
+    left: 50% !important;
+    transform: translate(-50%, -50%) !important;
+    right: auto !important;
+    bottom: auto !important;
+  }
+}
+.product-actions {
+  max-width: 280px;
+  margin: 0 auto;
+}
+
+.qty-wrapper {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+
+.qty-input {
+  width: 60px;
+  text-align: center;
+  padding: 0.25rem;
+}
+
+.qty-wrapper button {
+  width: 32px;
+  height: 32px;
+  font-size: 1.2rem;
+  padding: 0;
+  border-radius: 4px;
+}
+
+.note-input {
+  max-width: 100%;
+  margin: 0 auto 0.5rem;
+  padding: 0.25rem;
+}
+
+.action-wrapper .btn {
+  width: 100%;
+  max-width: 100%;
+}
 </style>
 
 
@@ -97,6 +143,7 @@
                           {{ product['unit'] }}
                       </div>
                   </div>
+                  <div class="product-actions text-center"> <!--mobile-->
                   <div class="qty-wrapper">
                     <button class="minus" type="button" onclick="changeQty(this,-1)">-</button>
                     <input type="number" name="quantity" id="quantity" value="1" min="1" class="qty-input">
@@ -104,11 +151,12 @@
                   </div>
                   <!-- Product actions-->
                   <div  class="action-wrapper">
-                    <input type="text" id="notes" name="notes" placeholder="add notes.."><br>
-                      <div  style="display: flex;" class="text-center"><a class="btn btn-outline-dark mt-auto" href="#" onclick="addProductToList(this); return false;" >הוסף פריט לרשימה</a>
-                      </div>
-                      
+                    <!-- <input type="text" id="notes" name="notes" placeholder="add notes..">   -->
+                    <textarea id="notes" name="notes" rows="3" placeholder="add notes.." class="form-control note-input"></textarea>                    
                   </div>
+                </div> <!--mobile-->
+                <div  style="display: flex;" class="text-center"><a class="btn btn-outline-dark mt-auto" href="#" onclick="addProductToList(this); return false;" >הוסף פריט לרשימה</a>
+                </div>
               </div>
           </div> 
       </div>
@@ -140,7 +188,19 @@
       })
       .then(data => {
           if (data.status == 200) {
-            $.notify("פריט התווסף לרשימה", "success");
+            if (window.innerWidth < 768) {
+              console.log("mobile");
+                // Mobile - use SweetAlert
+                Swal.fire({
+                  title: 'פריט הוסר',
+                  text: 'הפריט הוסר מהרשימה בהצלחה',
+                  icon: 'success',
+                  confirmButtonText: 'אישור'
+                });
+              } else {
+                // Desktop - use $.notify
+                $.notify("פריט הוסר מרשימה", "success");
+              }
           } else {
             $.notify("Error inserting Product", "error" );
           }
@@ -181,10 +241,8 @@
 function DelProductFromList(button) {
     //get clicked card data
     const data = button.closest('.form-check'); // or any container class
-    console.log(data)
     const listid =  document.querySelector('#listid').textContent
     const productid = data.querySelector('#blankCheckbox').dataset.itemId
-    console.log(productid,listid)
 
       fetch("/Remove_product_from_list", {
         method: "POST",
@@ -195,7 +253,19 @@ function DelProductFromList(button) {
       })
       .then(data => {
           if (data.status == 200) {
-            $.notify("פריט הוסר מרשימה", "success");
+            if (window.innerWidth < 768) {
+              console.log("mobile");
+                // Mobile - use SweetAlert
+                Swal.fire({
+                  title: 'פריט הוסר',
+                  text: 'הפריט הוסר מהרשימה בהצלחה',
+                  icon: 'success',
+                  confirmButtonText: 'אישור'
+                });
+              } else {
+                // Desktop - use $.notify
+                $.notify("פריט הוסר מרשימה", "success");
+              }
           } else {
             $.notify("Error deleting Product", "error" );
           }

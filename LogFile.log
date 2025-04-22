@@ -2514,3 +2514,38 @@ jinja2.exceptions.TemplateSyntaxError: expected name or number
 {'userid': 'jimmyadda', 'email': 'addajimmy@gmail.com', 'name': 'Defaccount'}Has Logged in
 {'userid': 'jimmyadda', 'email': 'addajimmy@gmail.com', 'name': 'Defaccount'}Has Logged in
 {'userid': 'jimmyadda', 'email': 'addajimmy@gmail.com', 'name': 'Defaccount'}Has Logged in
+{'userid': 'jimmyadda', 'email': 'addajimmy@gmail.com', 'name': 'Defaccount'}Has Logged in
+{'userid': 'jimmyadda', 'email': 'addajimmy@gmail.com', 'name': 'Defaccount'}Has Logged in
+{'userid': 'jimmyadda', 'email': 'addajimmy@gmail.com', 'name': 'Defaccount'}Has Logged in
+{'userid': 'jimmyadda', 'email': 'addajimmy@gmail.com', 'name': 'Defaccount'}Has Logged in
+Exception on /add_product_to_list [POST]
+Traceback (most recent call last):
+  File "C:\Python\Python312\Lib\site-packages\flask\app.py", line 1463, in wsgi_app
+    response = self.full_dispatch_request()
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Python\Python312\Lib\site-packages\flask\app.py", line 873, in full_dispatch_request
+    return self.finalize_request(rv)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Python\Python312\Lib\site-packages\flask\app.py", line 892, in finalize_request
+    response = self.make_response(rv)
+               ^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Python\Python312\Lib\site-packages\flask\app.py", line 1164, in make_response
+    raise TypeError(
+TypeError: The view function for 'add_product_to_list' did not return a valid response. The function either returned None or ended without a return statement.
+{'userid': 'jimmyadda', 'email': 'addajimmy@gmail.com', 'name': 'Defaccount'}Has Logged in
+{'userid': 'jimmyadda', 'email': 'addajimmy@gmail.com', 'name': 'Defaccount'}Has Logged in
+{'userid': 'jimmyadda', 'email': 'addajimmy@gmail.com', 'name': 'Defaccount'}Has Logged in
+{'userid': 'jimmyadda', 'email': 'addajimmy@gmail.com', 'name': 'Defaccount'}Has Logged in
+{'userid': 'jimmyadda', 'email': 'addajimmy@gmail.com', 'name': 'Defaccount'}Has Logged in
+{'userid': 'jimmyadda', 'email': 'addajimmy@gmail.com', 'name': 'Defaccount'}Has Logged in
+{'userid': 'jimmyadda', 'email': 'addajimmy@gmail.com', 'name': 'Defaccount'}Has Logged in
+{'userid': 'jimmyadda', 'email': 'addajimmy@gmail.com', 'name': 'Defaccount'}Has Logged in
+{'userid': 'jimmyadda', 'email': 'addajimmy@gmail.com', 'name': 'Defaccount'}Has Logged in
+{'userid': 'jimmyadda', 'email': 'addajimmy@gmail.com', 'name': 'Defaccount'}Has Logged in
+{'userid': 'jimmyadda', 'email': 'addajimmy@gmail.com', 'name': 'Defaccount'}Has Logged in
+{'userid': 'jimmyadda', 'email': 'addajimmy@gmail.com', 'name': 'Defaccount'}Has Logged in
+{'userid': 'jimmyadda', 'email': 'addajimmy@gmail.com', 'name': 'Defaccount'}Has Logged in
+{'userid': 'jimmyadda', 'email': 'addajimmy@gmail.com', 'name': 'Defaccount'}Has Logged in
+{'userid': 'jimmyadda', 'email': 'addajimmy@gmail.com', 'name': 'Defaccount'}Has Logged in
+{'userid': 'jimmyadda', 'email': 'addajimmy@gmail.com', 'name': 'Defaccount'}Has Logged in
+{'userid': 'jimmyadda', 'email': 'addajimmy@gmail.com', 'name': 'Defaccount'}Has Logged in
