@@ -3,6 +3,7 @@ from datetime import datetime
 import io
 import sqlite3
 import random
+from threading import Thread
 from flask import Flask, jsonify, send_file,flash,render_template,request,redirect, send_from_directory, session, url_for
 import flask_login
 from flask import Flask, session, render_template, request, g
@@ -11,9 +12,20 @@ from HandelDB import database_read,database_write,create_account
 import uuid
 import logging
 import hashlib
+from MaliknotBot import run_bot
+
+
 
 app = Flask(__name__)
 app.secret_key = "dsvnjksnvjksdvnsjkvnsjvsvs"
+
+# Run once when the Flask app handles its first request
+@app.before_first_request
+def start_bot():
+    thread = Thread(target=run_bot)
+    thread.daemon = True
+    thread.start()
+
 create_db()
 grocery_lists = {}  # Dictionary to hold lists: { "List Name": [ {name, collected}, ... ] }
 #Logs
@@ -261,8 +273,6 @@ def delete_List(List_id):
     categories =  database_read(f"select * from categories order by name;")
     return render_template('index.html', all_items=data,categories=categories) 
 
-
-
 @app.route("/add_product_to_list", methods=["POST"])
 def add_product_to_list():
     list_id = request.form.get("list_id", "").strip()
@@ -372,6 +382,49 @@ def add_header(response):
     if request.path.endswith('manifest.json'):
         response.headers['Content-Type'] = 'application/manifest+json'
     return response
+
+
+
+#Bot - API
+
+
+@app.route('/api/add_list_from_telegram', methods=['POST'])
+def add_list_from_telegram():
+    data = request.get_json()
+    print(data)
+    list_name = data.get('list_name', 'Telegram List')
+    items_text = data.get('items', '')
+
+    if not items_text:
+        return jsonify({"error": "No items provided"}), 400
+
+    item_names = [item.strip() for item in items_text.split(',') if item.strip()]
+    
+    # Insert new list
+    sql = f"INSERT INTO lists (name) VALUES ('{list_name}');"
+    database_write(sql)
+
+    # Get last inserted list ID
+    list_id = database_read("SELECT last_insert_rowid() AS id;")[0]['id']
+
+    # Add each item to products (if not exists) and to product_in_list
+    for name in item_names:
+        # Try find product by name
+        prod = database_read(f"SELECT id FROM products WHERE name = '{name}'")
+        if prod:
+            product_id = prod[0]['id']
+        else:
+            # Insert product
+            database_write(f"INSERT INTO products (name) VALUES ('{name}')")
+            product_id = database_read("SELECT last_insert_rowid() AS id;")[0]['id']
+        
+        # Insert into product_in_list
+        database_write(f"""
+            INSERT INTO product_in_list (list_id, product_id, quantity, collected)
+            VALUES ('{list_id}', '{product_id}', 1, 0);
+        """)
+
+    return jsonify({"status": "success", "list_id": list_id})
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port = 80, debug=True)
