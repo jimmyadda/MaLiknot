@@ -171,6 +171,7 @@ def product_add():
       price =  request.form['price']
       unit =  request.form['unit']
       sql= f"INSERT INTO products (name,price,unit,category_id) VALUES ('{item}', '{price}', '{unit}', '{category_id}');"
+      print(sql)
       ok = database_write(sql)
       print(ok)
       if ok == 1 :

@@ -1,42 +1,52 @@
 {% extends 'base.html' %}
 
 {% block content %}
-<div class="container">
-                    <div class="card mb-3" >
-                        <div class="row g-0">
-                        <div class="col-md-4">                           
-                        </div>
-                        <div class="col-md-8">
-                            <div class="card-body">
-                        <center>
-                            <h1>Edit Product</h1>
-                            <form method="POST">
-                                <label for="name">Name:</label>
-                                <input type="text" id="name" name="name" value="" required><br>
-                                
-                                <label for="price">Price:</label>
-                                <input type="number" min="0" step="any" id="price" name="price" value="" required><br>
-                                
-                                <label for="unit">unit:</label>
-                                <textarea id="unit" name="unit" required></textarea><br>
+<div class="container mt-4" style="max-width: 500px;">
+    <h3 class="mb-3 text-center">הוסף מוצר חדש</h3>
 
-                                <label for="category">Choose product categorie:</label><br>
-                                <select name="category" id="category">
-                                  {%for category in categories%}
-                                  <option value= {{category.id}} >{{category.name}}</option>
-                                  {%endfor%}
-                                </select> <br>
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        {% for category, message in messages %}
+          <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+            {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+          </div>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
 
+    <form action="{{ url_for('product_add') }}" method="POST">
+      <div class="mb-3">
+        <label for="name" class="form-label">שם המוצר</label>
+        <input type="text" class="form-control" id="name" name="name" required>
+      </div>
 
-                                <br><button type="submit" class="btn btn-primary" >Add Product</button>
-                            </form>
-                            <a href="{{ url_for('index') }}" class="btn btn-secondary">Home</a>
-                        </center>
+      <div class="mb-3">
+        <label for="category" class="form-label">קטגוריה</label>
+        <select class="form-select" id="category" name="category" required>
+          <option value="">בחר קטגוריה</option>
+          {% for cat in categories %}
+            <option value="{{ cat.id }}">{{ cat.name }}</option>
+          {% endfor %}
+        </select>
+      </div>
 
-                            </div>
-                        </div>
-                        </div>
-                    </div>
-</div>
+      <div class="mb-3">
+        <label for="price" class="form-label">מחיר</label>
+        <input type="number" step="0.01" class="form-control" id="price" name="price">
+      </div>
+
+      <div class="mb-3">
+        <label for="unit" class="form-label">יחידת מדידה</label>
+        <input type="text" class="form-control" id="unit" name="unit">
+      </div>
+
+      <button type="submit" class="btn btn-success w-100">שמור מוצר</button>
+    </form>
+
+    <div class="text-center mt-3">
+      <a href="{{ url_for('index') }}" class="btn btn-link">חזור לדף הבית</a>
+    </div>
+  </div>
 
 {% endblock %}
