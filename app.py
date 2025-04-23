@@ -2,6 +2,7 @@ import asyncio
 import csv
 from datetime import datetime
 import io
+import re
 import sqlite3
 import random
 from threading import Thread
@@ -14,7 +15,7 @@ from HandelDB import database_read,database_write,create_account
 import uuid
 import logging
 import hashlib
-
+from telegram_utils import send_telegram_message, extract_chat_id
 import nest_asyncio  # <- PATCH LOOP
 from MaliknotBot import run_bot
 
@@ -173,8 +174,9 @@ def product_disp(product_id):
 
 
 @falsk_app.route('/addproduct' , methods=['GET','POST'])
-def product_add():
+def addproduct():
     categories =  database_read(f"select * from categories order by name;")
+    print(categories)
     if request.method == 'POST':
       form = dict(request.values)
       item = request.form['name']
@@ -240,8 +242,7 @@ def view_list(list_id):
     if items:
         for item in items:
             product_id = item['product_id']         
-            item_data =  database_read(f"select pl.*,p.* from products p inner JOIN product_in_list  pl on pl.product_id = p.id where p.id ='{product_id}';")
-
+            item_data =  database_read(f"select pl.*,p.* from products p inner JOIN product_in_list  pl on pl.product_id = p.id where p.id ='{product_id}' and list_id='{list_id}';")
             if item_data:
                 list_items_data.append(item_data[0])
     #print(list_items_data)
@@ -310,9 +311,9 @@ def update_collected(item_id):
         list_id = data.get('list_id', 0)
         product_id = data.get('product_id', 0)
         sql = f"UPDATE product_in_list SET collected = '{collected}' WHERE product_id = '{product_id}' and list_id= '{list_id}'"
-        print(sql)
         ok = database_write(sql)
-        if ok == 1:
+        if ok == 1: 
+            check_and_notify_list_completion(list_id)
             return jsonify({'message': 'Collected status updated'}), 200
         else:
             return jsonify({'error': 'Update failed'}), 500
@@ -373,7 +374,6 @@ def export(list_name):
     return send_file(io.BytesIO(output.getvalue().encode()), as_attachment=True,
                      download_name=f"{list_name}_grocery_list.csv", mimetype="text/csv")
 
-
 @falsk_app.after_request
 def add_header(response):
     if request.path.endswith('service-worker.js'):
@@ -407,26 +407,23 @@ def add_list_from_telegram():
         print(item)
 
         if item:
-            parts = item.split(' ', 2)  # Split into [product, quantity, note]
-            print(parts,len(parts))
-            if len(parts) == 1:
-                product = parts[0]
-                quantity = 1.0
-                note = ''
-            elif len(parts) == 2:
-                product = parts[0]
+            # Match first number in the string (int or float)
+            match = re.search(r'\b\d+(\.\d+)?\b', item)
+            if match:
                 try:
-                    quantity = float(parts[1])
+                    quantity = float(match.group())
                 except ValueError:
                     return jsonify({"error": f"Invalid quantity for item: {item}"}), 400
-                note = ''
+                product = item[:match.start()].strip()
+                note = item[match.end():].strip()
             else:
-                product = parts[0]
-                try:
-                    quantity = float(parts[1])
-                except ValueError:
-                    return jsonify({"error": f"Invalid quantity for item: {item}"}), 400
-                note = parts[2]
+                # No number found, default to quantity 1
+                quantity = 1.0
+                product = item.strip()
+                note = ''
+
+            if not product:
+                return jsonify({"error": f"Missing product name in item: {item}"}), 400
 
             item_details.append({"product": product, "quantity": quantity, "note": note})
 
@@ -439,7 +436,7 @@ def add_list_from_telegram():
         print(list_id)
     else:
         database_write("INSERT INTO lists (name) VALUES (?)", (list_name,))
-        list_id = database_read("SELECT max(id) FROM lists")[0]['id']
+        list_id = database_read("SELECT max(id) as id FROM lists")[0]['id']
 
     for item in item_details:
         product = item['product']
@@ -460,6 +457,23 @@ def add_list_from_telegram():
 
     return jsonify({"status": "success", "list_id": list_id})
 
+def check_and_notify_list_completion(list_id):
+    list_info = database_read("SELECT name FROM lists WHERE id = ?", (list_id,))
+    if not list_info:
+        return
+
+    list_name = list_info[0]['name']
+    chat_id = extract_chat_id(list_name)
+    if not chat_id:
+        print(f"Could not extract chat_id from list name: {list_name}")
+        return
+
+    items = database_read("""
+        SELECT collected FROM product_in_list WHERE list_id = ?
+    """, (list_id,))
+
+    if items and all(item['collected'] for item in items):
+        send_telegram_message(chat_id, f"✅ כל הפריטים ברשימה שלך נאספו בהצלחה! (#{list_id})")
 
 if __name__ == "__main__":
     threading.Thread(target=run_flask, daemon=True).start()
