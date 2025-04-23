@@ -39,6 +39,9 @@ logger = app.logger
 login_manager = flask_login.LoginManager()
 login_manager.init_app(app)
 
+print(app)
+print(type(app))
+      
 @app.context_processor
 def inject_user():
     return dict(user=flask_login.current_user)
@@ -481,7 +484,7 @@ def check_and_notify_list_completion(list_id):
 def launch_bot():
     print("Launching Telegram bot...")
     nest_asyncio.apply()
-    threading.Thread(target=lambda: asyncio.run(run_bot()), daemon=True).start()
+    threading.Thread(target=run_bot, daemon=True).start()
 
 
 """ if __name__ == "__main__":
