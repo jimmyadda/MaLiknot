@@ -17,7 +17,9 @@ import hashlib
 from telegram_utils import send_telegram_message, extract_chat_id
 import nest_asyncio  # <- PATCH LOOP
 from MaliknotBot import run_bot
-
+from telegram.ext import ApplicationBuilder, CommandHandler, MessageHandler, filters
+from telegram import Update
+from telegram.ext import ContextTypes
 
 
 app = Flask(__name__)
@@ -475,15 +477,15 @@ def check_and_notify_list_completion(list_id):
         send_telegram_message(chat_id, f"✅ כל הפריטים ברשימה שלך נאספו בהצלחה! (#{list_id})")
 
 
-# ---- Start the Telegram bot in a thread when app loads ----
 @app.before_first_request
 def launch_bot():
-    nest_asyncio.apply()  # required because Flask uses its own loop
-    threading.Thread(target=run_bot, daemon=True).start()
+    print("Launching Telegram bot...")
+    nest_asyncio.apply()
+    threading.Thread(target=lambda: asyncio.run(run_bot()), daemon=True).start()
 
 
-if __name__ == "__main__":
+""" if __name__ == "__main__":
     threading.Thread(target=run_flask, daemon=True).start()
     # Patch the loop to allow nesting
     nest_asyncio.apply()
-    asyncio.run(run_bot())
+    asyncio.run(run_bot()) """
