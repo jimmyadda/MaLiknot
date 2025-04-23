@@ -41,7 +41,7 @@ async def error(update: Update, context: ContextTypes.DEFAULT_TYPE):
     print(f'update {update} caused error {context.error}')
 
 
-async def run_bot():
+def run_bot():
     print("runnaing bot onRender")
     Botapp = ApplicationBuilder().token(BOT_TOKEN).build()
     #commands
