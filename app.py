@@ -482,8 +482,9 @@ def check_and_notify_list_completion(list_id):
 
 # --- Telegram Bot Startup ---
 print("Starting Telegram bot thread at app startup...")
+threading.Thread(target=run_flask, daemon=True).start()
 nest_asyncio.apply()
-threading.Thread(target=run_bot, daemon=True).start()
+asyncio.run(run_bot())
 
 
 """ if __name__ == "__main__":
