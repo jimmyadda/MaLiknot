@@ -480,11 +480,14 @@ def check_and_notify_list_completion(list_id):
         send_telegram_message(chat_id, f"✅ כל הפריטים ברשימה שלך נאספו בהצלחה! (#{list_id})")
 
 
-# --- Telegram Bot Startup ---
-print("Starting Telegram bot thread at app startup...")
-threading.Thread(target=run_flask, daemon=True).start()
-nest_asyncio.apply()
-asyncio.run(run_bot())
+if __name__ == "__main__":
+    print("Starting Flask in background thread...")
+    flask_thread = threading.Thread(target=run_flask, daemon=True)
+    flask_thread.start()
+
+    print("Starting Telegram bot in main thread...")
+    nest_asyncio.apply()
+    run_bot()  # <- Main thread, will block and stay alive
 
 
 """ if __name__ == "__main__":
