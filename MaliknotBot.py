@@ -38,14 +38,14 @@ async def error(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 def run_bot():
     print("runnaing bot onRender")
-    app = ApplicationBuilder().token(BOT_TOKEN).build()
+    Botapp = ApplicationBuilder().token(BOT_TOKEN).build()
     #commands
-    app.add_handler(CommandHandler('start',start_command))
+    Botapp.add_handler(CommandHandler('start',start_command))
     #messages
-    app.add_handler(MessageHandler(filters.TEXT & (~filters.COMMAND), handle_message))
+    Botapp.add_handler(MessageHandler(filters.TEXT & (~filters.COMMAND), handle_message))
     #errors
-    app.add_error_handler(error)
-    app.run_polling()
+    Botapp.add_error_handler(error)
+    Botapp.run_polling()
 
 
 
