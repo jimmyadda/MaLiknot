@@ -7,9 +7,8 @@ import sqlite3
 import random
 from threading import Thread
 import threading
-from flask import Flask, jsonify, send_file,flash,render_template,request,redirect, send_from_directory, session, url_for
+from flask import Flask, jsonify, send_file,flash,g,render_template,request,redirect, send_from_directory, session, url_for
 import flask_login
-from flask import Flask, session, render_template, request, g
 from grocery_list import create_db
 from HandelDB import database_read,database_write,create_account
 import uuid
