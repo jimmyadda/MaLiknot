@@ -1,5 +1,6 @@
 import logging
 import aiohttp
+import asyncio
 from telegram import Update
 from telegram.ext import ApplicationBuilder,CommandHandler, MessageHandler, filters, ContextTypes
 
@@ -36,7 +37,7 @@ async def error(update: Update, context: ContextTypes.DEFAULT_TYPE):
     print(f'update {update} caused error {context.error}')
 
 
-def run_bot():
+async def run():
     print("runnaing bot onRender")
     Botapp = ApplicationBuilder().token(BOT_TOKEN).build()
     #commands
@@ -48,7 +49,11 @@ def run_bot():
     Botapp.run_polling()
 
 
-
+def run_bot():
+    loop = asyncio.new_event_loop()
+    asyncio.set_event_loop(loop)
+    loop.run_until_complete(run())
+    
 
 """ if __name__== '__main__':
     print("runnaing bot locally")
