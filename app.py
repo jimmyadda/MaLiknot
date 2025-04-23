@@ -452,7 +452,7 @@ def add_list_from_telegram():
             product_id = prod[0]['id']
         else:
             database_write("INSERT INTO products (name) VALUES (?)", (product,))
-            product_id = database_read("SELECT last_insert_rowid()")[0]['id']
+            product_id = database_read("SELECT max(id) as id FROM products")[0]['id']
 
         database_write("""
             INSERT INTO product_in_list (list_id, product_id, quantity, collected, notes)
