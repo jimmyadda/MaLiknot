@@ -4,6 +4,7 @@ import io
 import sqlite3
 import random
 from threading import Thread
+import threading
 from flask import Flask, jsonify, send_file,flash,render_template,request,redirect, send_from_directory, session, url_for
 import flask_login
 from flask import Flask, session, render_template, request, g
@@ -20,11 +21,17 @@ app = Flask(__name__)
 app.secret_key = "dsvnjksnvjksdvnsjkvnsjvsvs"
 
 # Run once when the Flask app handles its first request
-@app.before_first_request
+""" @app.before_first_request
 def start_bot():
     thread = Thread(target=run_bot)
     thread.daemon = True
-    thread.start()
+    thread.start() """
+
+# Start the bot in a separate thread
+def start_bot_thread():
+    bot_thread = threading.Thread(target=run_bot)
+    bot_thread.daemon = True
+    bot_thread.start()    
 
 create_db()
 grocery_lists = {}  # Dictionary to hold lists: { "List Name": [ {name, collected}, ... ] }
@@ -386,8 +393,6 @@ def add_header(response):
 
 
 #Bot - API
-
-
 @app.route('/api/add_list_from_telegram', methods=['POST'])
 def add_list_from_telegram():
     data = request.get_json()
@@ -425,6 +430,11 @@ def add_list_from_telegram():
         """)
 
     return jsonify({"status": "success", "list_id": list_id})
+
+
+# Safe to use BEFORE app.run()
+start_bot_thread()
+
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port = 80, debug=True)
