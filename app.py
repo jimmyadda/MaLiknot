@@ -511,10 +511,14 @@ def send_list_to_telegram(list_id):
         name = item['name']
         quantity = item['quantity']
         note = item['note']
-        line = f"- {name} ({quantity})"
+        collected = item['collected']
+        status = "✅" if collected > 0 else "❌"
+
+        line = f"- {name} ({quantity}) collected: {status}"
         if note:
             line += f" - {note}"
         message += line + "\n"
+
     print(message)
     # 4. Send to Telegram
     result = send_telegram_message(chat_id, message)
