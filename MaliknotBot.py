@@ -76,8 +76,8 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
                 # Create inline keyboard with a button
                 keyboard = [
-                    [InlineKeyboardButton("📋 הצג את הרשימה", url=url)]
-                ]               
+                    [InlineKeyboardButton("📋 הצג את הרשימה", callback_data=f"showlist:{list_id}")]
+                ]            
                 reply_markup = InlineKeyboardMarkup(keyboard)
 
                 await update.message.reply_text(
