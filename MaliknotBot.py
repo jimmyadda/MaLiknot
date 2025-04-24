@@ -6,7 +6,7 @@ from flask import Flask
 from telegram import Update,InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import ApplicationBuilder,CommandHandler, MessageHandler, filters, ContextTypes,CallbackQueryHandler
 
-from HandelDB import database_read
+from HandelDB import database_read,database_write
 
 
 
@@ -76,7 +76,9 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
                 # Create inline keyboard with a button
                 keyboard = [
-                    [InlineKeyboardButton("📋 הצג את הרשימה", callback_data=f"showlist:{list_id}")]
+                            InlineKeyboardButton("📋 הצג את הרשימה", callback_data=f"showlist:{list_id}"),
+                            InlineKeyboardButton("🗑 מחק", callback_data=f"deletelist:{list_id}"),
+                            InlineKeyboardButton("🔁 שכפל", callback_data=f"duplicatelist:{list_id}")
                 ]            
                 reply_markup = InlineKeyboardMarkup(keyboard)
 
@@ -87,12 +89,12 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
             else:
                 await update.message.reply_text("❌ אירעה שגיאה. נסה שוב.")
 
-
+#buttons
 async def handle_button_press(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
     await query.answer()  # ✅ Always respond to Telegram or the button will appear stuck
-
     data = query.data
+    
     print(f"Callback data received: {data}")
 
     if data.startswith("showlist:"):
@@ -121,8 +123,36 @@ async def handle_button_press(update: Update, context: ContextTypes.DEFAULT_TYPE
             if note:
                 line += f" - {note}"
             message += line + "\n"
-
         await context.bot.send_message(chat_id=query.message.chat_id, text=message)
+
+    elif data.startswith("deletelist:"):
+        list_id = int(data.split(":")[1])
+        database_write("DELETE FROM product_in_list WHERE list_id = ?", (list_id,))
+        database_write("DELETE FROM lists WHERE id = ?", (list_id,))
+        await context.bot.send_message(chat_id=query.message.chat_id, text=f"🗑 הרשימה {list_id} נמחקה.")
+
+    elif data.startswith("duplicatelist:"):
+        original_id = int(data.split(":")[1])
+        # Get original list
+        original = database_read("SELECT name FROM lists WHERE id = ?", (original_id,))
+        if not original:
+            await context.bot.send_message(chat_id=query.message.chat_id, text="❌ הרשימה לא נמצאה.")
+            return
+
+        new_name = original[0]['name'] + " (העתק)"
+        database_write("INSERT INTO lists (name) VALUES (?)", (new_name,))
+        new_id = database_read("SELECT max(id) as id FROM lists")[0]['id']
+
+        # Copy items
+        items = database_read("SELECT product_id, quantity, notes FROM product_in_list WHERE list_id = ?", (original_id,))
+        for item in items:
+            database_write(
+                "INSERT INTO product_in_list (list_id, product_id, quantity, collected, notes) VALUES (?, ?, ?, 0, ?)",
+                (new_id, item['product_id'], item['quantity'], item['notes'])
+            )
+
+        await context.bot.send_message(chat_id=query.message.chat_id, text=f"🔁 הרשימה שוכפלה. מזהה חדש: {new_id}")
+
 
 
 async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -147,22 +177,4 @@ def run_bot():
     print("pooling...")
 
     Botapp.run_polling()
-
-
-"""def run_bot():
-    loop = asyncio.new_event_loop()
-    asyncio.set_event_loop(loop)
-    loop.run_until_complete(run())
-
-
- if __name__== '__main__':
-    print("runnaing bot locally")
-    app = ApplicationBuilder().token(BOT_TOKEN).build()
-    #commands
-    app.add_handler(CommandHandler('start',start_command))
-    #messages
-    app.add_handler(MessageHandler(filters.TEXT & (~filters.COMMAND), handle_message))
-    #errors
-    app.add_error_handler(error)
-    print("pooling")
-    app.run_polling()  """   
+ 
