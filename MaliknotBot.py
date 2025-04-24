@@ -56,12 +56,8 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
                 # Create inline keyboard with a button
                 keyboard = [
-                    [InlineKeyboardButton("📋 הצג את הרשימה", url=url)]
-                ]
-                keyboard = [
                     [InlineKeyboardButton("📋 הצג את הרשימה", callback_data=f"showlist:{list_id}")]
-                ]
-                
+                ]                
                 reply_markup = InlineKeyboardMarkup(keyboard)
 
                 await update.message.reply_text(
@@ -89,9 +85,9 @@ async def handle_button_press(update: Update, context: ContextTypes.DEFAULT_TYPE
             JOIN products p ON p.id = pl.product_id
             WHERE pl.list_id = ?
         """, (list_id,))
-
+        print(items)
         if not items:
-            await query.edit_message_text("❌ לא נמצאו פריטים ברשימה.")
+            await context.bot.send_message(chat_id=query.message.chat_id, text="❌ הרשימה ריקה או לא קיימת.")
             return
 
         message = f"📋 רשימת קניות #{list_id}:\n"
@@ -104,6 +100,8 @@ async def handle_button_press(update: Update, context: ContextTypes.DEFAULT_TYPE
                 line += f" - {note}"
             message += line + "\n"
         
+        print(message)
+        print(query.message.chat_id)
         await context.bot.send_message(chat_id=query.message.chat_id, text=message)  # ✅ sends a new message
         #await query.edit_message_text(message)
 
