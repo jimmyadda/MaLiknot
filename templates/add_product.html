@@ -15,7 +15,7 @@
       {% endif %}
     {% endwith %}
 
-    <form action="{{ url_for('product_add') }}" method="POST">
+    <form action="{{ url_for('addproduct') }}" method="POST">
       <div class="mb-3">
         <label for="name" class="form-label">שם המוצר</label>
         <input type="text" class="form-control" id="name" name="name" required>

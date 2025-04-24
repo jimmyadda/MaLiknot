@@ -1,0 +1,1 @@
+startCommand: gunicorn app:app

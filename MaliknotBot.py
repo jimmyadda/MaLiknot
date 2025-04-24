@@ -10,7 +10,7 @@ from telegram.ext import ApplicationBuilder,CommandHandler, MessageHandler, filt
 
 BOT_TOKEN = '7807618025:AAGKA3jxR2qFsA1F5yfkbaJuqJo40GW5kFs'
 FLASK_API_URL = 'https://maliknot.onrender.com/api/add_list_from_telegram' #PROD
-FLASK_API_URL = 'http://127.0.0.1:5000/api/add_list_from_telegram' #test
+#FLASK_API_URL = 'http://127.0.0.1:5000/api/add_list_from_telegram' #test
 logging.basicConfig(level=logging.INFO)
 
 
@@ -41,7 +41,7 @@ async def error(update: Update, context: ContextTypes.DEFAULT_TYPE):
     print(f'update {update} caused error {context.error}')
 
 
-async def run_bot():
+def run_bot():
     print("runnaing bot onRender")
     Botapp = ApplicationBuilder().token(BOT_TOKEN).build()
     #commands

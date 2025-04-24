@@ -19,7 +19,7 @@
                   <input type="text" name="list_name" class="form-control me-2" placeholder="New list name" required>
                   <button class="btn btn-primary">Create List</button>
                 </form>
-                <h3>Existing Lists</h3>
+                    <h3>Existing Lists</h3>
                 <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 g-3">
                     {% for list in lists %}
                     <div class="col">
@@ -41,7 +41,9 @@
               </div>
 
             <div class="container container-box">
-                <h1 class="mb-4"> Products Lists</h1>
+                <h1 class="mb-4" style="display: inline-block;"> Products Lists</h1>&nbsp;&nbsp;
+                <button id="addnewbtn" class="add-btn" title="add new product" style="background: none;border: 0;" ><i id="addnewbtn2" class="fa fa-plus"></i></button>
+
                 <div class="row row-cols-2 row-cols-sm-3 row-cols-md-4 row-cols-lg-5 g-3">
                     <input type="text" id="productFilter" style="margin-bottom: 5px;" class="form-control" placeholder="Filter products...">
                     {% for product in all_items%}  
@@ -145,7 +147,6 @@
                 $(".delprod").each(function(index) {
                     $(this).on("click", function() {
                         var prod_id = $(this).closest(".card-body").find("p").text();
-                        console.log(prod_id);
                         deleteproduct(prod_id); 
                     });
                 });
@@ -153,12 +154,13 @@
                 $(".dellist").each(function(index) {
                     $(this).on("click", function() {
                         var list_id = $(this).closest(".card-body").find(".text-muted").text();
-                        console.log(list_id);
                         deletelist(list_id);                    
                     });
                 });
 
-
+                $("#addnewbtn").on("click", function() {
+                    window.location.href = "{{ url_for('addproduct') }}";
+                });
 
                 //filter
                 $("#productFilter").on("keyup", function () {

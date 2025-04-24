@@ -2,26 +2,29 @@ import asyncio
 import csv
 from datetime import datetime
 import io
+import os
+import re
 import sqlite3
 import random
 from threading import Thread
 import threading
-from flask import Flask, jsonify, send_file,flash,render_template,request,redirect, send_from_directory, session, url_for
+from flask import Flask, jsonify, send_file,flash,g,render_template,request,redirect, send_from_directory, session, url_for
 import flask_login
-from flask import Flask, session, render_template, request, g
 from grocery_list import create_db
 from HandelDB import database_read,database_write,create_account
 import uuid
 import logging
 import hashlib
-
+from telegram_utils import send_telegram_message, extract_chat_id
 import nest_asyncio  # <- PATCH LOOP
 from MaliknotBot import run_bot
+from telegram.ext import ApplicationBuilder, CommandHandler, MessageHandler, filters
+from telegram import Update
+from telegram.ext import ContextTypes
 
 
-
-falsk_app = Flask(__name__)
-falsk_app.secret_key = "dsvnjksnvjksdvnsjkvnsjvsvs"
+app = Flask(__name__)
+app.secret_key = "dsvnjksnvjksdvnsjkvnsjvsvs"
 
 
 
@@ -29,15 +32,18 @@ create_db()
 grocery_lists = {}  # Dictionary to hold lists: { "List Name": [ {name, collected}, ... ] }
 #Logs
 handler = logging.FileHandler('LogFile.log') # creates handler for the log file
-falsk_app.logger.addHandler(handler) # Add it to the built-in logger
-falsk_app.logger.setLevel(logging.DEBUG)         # Set the log level to debug
-logger = falsk_app.logger
+app.logger.addHandler(handler) # Add it to the built-in logger
+app.logger.setLevel(logging.DEBUG)         # Set the log level to debug
+logger = app.logger
 
 #Log in 
 login_manager = flask_login.LoginManager()
-login_manager.init_app(falsk_app)
+login_manager.init_app(app)
 
-@falsk_app.context_processor
+print(app)
+print(type(app))
+      
+@app.context_processor
 def inject_user():
     return dict(user=flask_login.current_user)
 
@@ -60,11 +66,11 @@ def load_user(userid):
         user.id = userid
         return user  
 
-@falsk_app.route("/register", methods=['GET'])
+@app.route("/register", methods=['GET'])
 def registration_page():
     return render_template('register.html', alert="")
 
-@falsk_app.route("/register", methods=['POST'])
+@app.route("/register", methods=['POST'])
 def registration_request():
     form = dict(request.values)    
     folderid="0"
@@ -90,11 +96,11 @@ def registration_request():
     else:
          return render_template('/register.html',alert = "Please insert valid email to register!")
 
-@falsk_app.route("/login", methods=['GET'])
+@app.route("/login", methods=['GET'])
 def login_page():
     return render_template('login.html',alert ="")
 
-@falsk_app.route("/login", methods=['POST'])
+@app.route("/login", methods=['POST'])
 def login_request():
     form = dict(request.values)
     users = database_read("select * from accounts where userid=:userid",form)
@@ -120,13 +126,13 @@ def login_request():
         logger.info(f"Login Failed - '{form['userid']}'  date: {str(datetime.now())}")
         return render_template('/login.html',alert = "Invalid user/password. please try again.")
 
-@falsk_app.route("/logout")
+@app.route("/logout")
 @flask_login.login_required
 def logout_page():
     flask_login.logout_user()
     return redirect("/")
     
-@falsk_app.route("/", methods=["GET", "POST"])
+@app.route("/", methods=["GET", "POST"])
 def index():
     if flask_login.current_user.is_authenticated:
         logger.info(str(flask_login.current_user.get_dict()) + "Has Logged in")
@@ -148,33 +154,34 @@ def index():
     else:
         return redirect("/login")
 
-@falsk_app.route("/add-items",methods=["post"])
+@app.route("/add-items",methods=["post"])
 def add_items():
     data = dict(request.values)
     return render_template('index2.html', all_items=data)
 
-@falsk_app.teardown_appcontext
+@app.teardown_appcontext
 def close_connection(exception):
     db = getattr(g, '_database', None)
     if db is not None:
         db.close()
 
 
-@falsk_app.route('/category/<category_name>')
+@app.route('/category/<category_name>')
 def category_name(category_name):
     cat_items = database_read(f"select p.*,cat.name as catName from products p left JOIN categories  cat on category_id = cat.id where cat.name ='{category_name}';")
     return render_template('category.html', cat=category_name,cat_items=cat_items)
 
 
-@falsk_app.route('/product/<product_id>')
+@app.route('/product/<product_id>')
 def product_disp(product_id):
     product = database_read(f"select p.*,cat.name as catName from products p left JOIN categories  cat on category_id = cat.id where p.id ='{product_id}';")
     return render_template('product.html', products=product) 
 
 
-@falsk_app.route('/addproduct' , methods=['GET','POST'])
-def product_add():
+@app.route('/addproduct' , methods=['GET','POST'])
+def addproduct():
     categories =  database_read(f"select * from categories order by name;")
+    print(categories)
     if request.method == 'POST':
       form = dict(request.values)
       item = request.form['name']
@@ -192,7 +199,7 @@ def product_add():
     else:
         return render_template('add_product.html',categories=categories) 
 
-@falsk_app.route('/product/<int:product_id>/edit', methods=['GET', 'POST'])
+@app.route('/product/<int:product_id>/edit', methods=['GET', 'POST'])
 def edit_product(product_id):
     product = database_read(f"select p.*,cat.name as catName from products p left JOIN categories  cat on category_id = cat.id where p.id ='{product_id}';")
     if request.method == 'POST':
@@ -211,7 +218,7 @@ def edit_product(product_id):
     else:
         return render_template('edit_product.html', products=product)
 
-@falsk_app.route('/delete_Product/<int:product_id>', methods=['DELETE', 'POST'])
+@app.route('/delete_Product/<int:product_id>', methods=['DELETE', 'POST'])
 @flask_login.login_required
 def delete_product(product_id):
     user = flask_login.current_user.get_dict()
@@ -231,7 +238,7 @@ def delete_product(product_id):
     categories =  database_read(f"select * from categories order by name;")
     return render_template('index.html', all_items=data,categories=categories) 
 
-@falsk_app.route("/list/<int:list_id>", methods=["GET", "POST"])
+@app.route("/list/<int:list_id>", methods=["GET", "POST"])
 def view_list(list_id):
     #items  in list
     list_items_data = []  # make this a list
@@ -240,8 +247,7 @@ def view_list(list_id):
     if items:
         for item in items:
             product_id = item['product_id']         
-            item_data =  database_read(f"select pl.*,p.* from products p inner JOIN product_in_list  pl on pl.product_id = p.id where p.id ='{product_id}';")
-
+            item_data =  database_read(f"select pl.*,p.* from products p inner JOIN product_in_list  pl on pl.product_id = p.id where p.id ='{product_id}' and list_id='{list_id}';")
             if item_data:
                 list_items_data.append(item_data[0])
     #print(list_items_data)
@@ -251,7 +257,7 @@ def view_list(list_id):
     categories =  database_read(f"select * from categories order by name;")   
     return render_template("list.html", list_id=list_id,list_data=list_data, items=list_items_data,list_name=list_name,all_items=items_data,categories=categories)
 
-@falsk_app.route('/delete_List/<int:List_id>', methods=['DELETE', 'POST'])
+@app.route('/delete_List/<int:List_id>', methods=['DELETE', 'POST'])
 @flask_login.login_required
 def delete_List(List_id):
     user = flask_login.current_user.get_dict()
@@ -272,7 +278,7 @@ def delete_List(List_id):
     categories =  database_read(f"select * from categories order by name;")
     return render_template('index.html', all_items=data,categories=categories) 
 
-@falsk_app.route("/add_product_to_list", methods=["POST"])
+@app.route("/add_product_to_list", methods=["POST"])
 def add_product_to_list():
     list_id = request.form.get("list_id", "").strip()
     product_id = request.form.get("product_id", "").strip()
@@ -302,7 +308,7 @@ def add_product_to_list():
         flash(f"Database error: {e}", "danger")
         return jsonify({'error': str(e)}), 500
 
-@falsk_app.route('/update_collected/<int:item_id>', methods=['POST'])
+@app.route('/update_collected/<int:item_id>', methods=['POST'])
 def update_collected(item_id):
     try:
         data = request.get_json()
@@ -310,16 +316,16 @@ def update_collected(item_id):
         list_id = data.get('list_id', 0)
         product_id = data.get('product_id', 0)
         sql = f"UPDATE product_in_list SET collected = '{collected}' WHERE product_id = '{product_id}' and list_id= '{list_id}'"
-        print(sql)
         ok = database_write(sql)
-        if ok == 1:
+        if ok == 1: 
+            check_and_notify_list_completion(list_id)
             return jsonify({'message': 'Collected status updated'}), 200
         else:
             return jsonify({'error': 'Update failed'}), 500
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
-@falsk_app.route("/Remove_product_from_list", methods=['DELETE', 'POST'])
+@app.route("/Remove_product_from_list", methods=['DELETE', 'POST'])
 def Remove_product_from_list():
     list_id = request.form.get("list_id", "").strip()
     product_id = request.form.get("product_id", "").strip()
@@ -345,7 +351,7 @@ def Remove_product_from_list():
         flash(f"Database error: {e}", "danger")
         return jsonify({'error': str(e)}), 500
       
-@falsk_app.context_processor
+@app.context_processor
 def inject_collected_count():
     def get_collected_count(list_id=None):
         if list_id is None:
@@ -358,7 +364,7 @@ def inject_collected_count():
 
     return dict(get_collected_count=get_collected_count)
 
-@falsk_app.route("/export/<list_name>")
+@app.route("/export/<list_name>")
 def export(list_name):
     if list_name not in grocery_lists:
         return redirect(url_for("index"))
@@ -373,8 +379,7 @@ def export(list_name):
     return send_file(io.BytesIO(output.getvalue().encode()), as_attachment=True,
                      download_name=f"{list_name}_grocery_list.csv", mimetype="text/csv")
 
-
-@falsk_app.after_request
+@app.after_request
 def add_header(response):
     if request.path.endswith('service-worker.js'):
         response.headers['Content-Type'] = 'application/javascript'
@@ -384,11 +389,12 @@ def add_header(response):
 
 
 def run_flask():
-    falsk_app.run(host='0.0.0.0', port=5000)
+    port = int(os.environ.get("PORT", 5000))  # use Render's assigned port or fallback to 5000
+    app.run(host="0.0.0.0", port=port)
 
 
 #Bot - API
-@falsk_app.route('/api/add_list_from_telegram', methods=['POST'])
+@app.route('/api/add_list_from_telegram', methods=['POST'])
 def add_list_from_telegram():
     data = request.get_json()
     print(data)
@@ -407,26 +413,23 @@ def add_list_from_telegram():
         print(item)
 
         if item:
-            parts = item.split(' ', 2)  # Split into [product, quantity, note]
-            print(parts,len(parts))
-            if len(parts) == 1:
-                product = parts[0]
-                quantity = 1.0
-                note = ''
-            elif len(parts) == 2:
-                product = parts[0]
+            # Match first number in the string (int or float)
+            match = re.search(r'\b\d+(\.\d+)?\b', item)
+            if match:
                 try:
-                    quantity = float(parts[1])
+                    quantity = float(match.group())
                 except ValueError:
                     return jsonify({"error": f"Invalid quantity for item: {item}"}), 400
-                note = ''
+                product = item[:match.start()].strip()
+                note = item[match.end():].strip()
             else:
-                product = parts[0]
-                try:
-                    quantity = float(parts[1])
-                except ValueError:
-                    return jsonify({"error": f"Invalid quantity for item: {item}"}), 400
-                note = parts[2]
+                # No number found, default to quantity 1
+                quantity = 1.0
+                product = item.strip()
+                note = ''
+
+            if not product:
+                return jsonify({"error": f"Missing product name in item: {item}"}), 400
 
             item_details.append({"product": product, "quantity": quantity, "note": note})
 
@@ -439,7 +442,7 @@ def add_list_from_telegram():
         print(list_id)
     else:
         database_write("INSERT INTO lists (name) VALUES (?)", (list_name,))
-        list_id = database_read("SELECT max(id) FROM lists")[0]['id']
+        list_id = database_read("SELECT max(id) as id FROM lists")[0]['id']
 
     for item in item_details:
         product = item['product']
@@ -451,7 +454,7 @@ def add_list_from_telegram():
             product_id = prod[0]['id']
         else:
             database_write("INSERT INTO products (name) VALUES (?)", (product,))
-            product_id = database_read("SELECT last_insert_rowid()")[0]['id']
+            product_id = database_read("SELECT max(id) as id FROM products")[0]['id']
 
         database_write("""
             INSERT INTO product_in_list (list_id, product_id, quantity, collected, notes)
@@ -460,10 +463,37 @@ def add_list_from_telegram():
 
     return jsonify({"status": "success", "list_id": list_id})
 
+def check_and_notify_list_completion(list_id):
+    list_info = database_read("SELECT name FROM lists WHERE id = ?", (list_id,))
+    if not list_info:
+        return
+
+    list_name = list_info[0]['name']
+    chat_id = extract_chat_id(list_name)
+    if not chat_id:
+        print(f"Could not extract chat_id from list name: {list_name}")
+        return
+
+    items = database_read("""
+        SELECT collected FROM product_in_list WHERE list_id = ?
+    """, (list_id,))
+
+    if items and all(item['collected'] for item in items):
+        send_telegram_message(chat_id, f"✅ כל הפריטים ברשימה שלך נאספו בהצלחה! (#{list_id})")
+
 
 if __name__ == "__main__":
-    threading.Thread(target=run_flask, daemon=True).start()
+    print("Starting Flask in background thread...")
+    flask_thread = threading.Thread(target=run_flask, daemon=True)
+    flask_thread.start()
 
+    print("Starting Telegram bot in main thread...")
+    nest_asyncio.apply()
+    run_bot()  # <- Main thread, will block and stay alive
+
+
+""" if __name__ == "__main__":
+    threading.Thread(target=run_flask, daemon=True).start()
     # Patch the loop to allow nesting
     nest_asyncio.apply()
-    asyncio.run(run_bot())
+    asyncio.run(run_bot()) """
