@@ -487,21 +487,18 @@ def send_list_to_telegram(list_id):
     list_info = database_read("SELECT name FROM lists WHERE id = ?", (list_id,))
     if not list_info:
         return "List not found", 404
-    
     list_name = list_info[0]['name']
     chat_id = extract_chat_id(list_name)
-    print(list_id,chat_id)
     if not chat_id:
         return "Chat ID not found in list name", 400
 
     # 2. Fetch items in the list
     items = database_read("""
-        SELECT p.name, pl.quantity, pl.notes
+        SELECT p.name, pl.quantity, pl.notes,pl.collected
         FROM product_in_list pl
         JOIN products p ON p.id = pl.product_id
         WHERE pl.list_id = ?
     """, (list_id,))
-    print(items)
     if not items:
         return "No items found in list", 404
 
