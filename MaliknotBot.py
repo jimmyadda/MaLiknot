@@ -164,8 +164,10 @@ async def handle_button_press(update: Update, context: ContextTypes.DEFAULT_TYPE
         reply_markup = InlineKeyboardMarkup(keyboard)
 
         await context.bot.send_message(
-                    f"🔁 הרשימה שוכפלה. מזהה חדש: {new_id}",
-                    reply_markup=reply_markup)
+            chat_id=query.message.chat_id,
+            text=f"🔁 הרשימה שוכפלה. מזהה חדש: {new_id}",
+            reply_markup=reply_markup
+        )
         
 
 async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
