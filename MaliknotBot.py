@@ -15,26 +15,44 @@ logging.basicConfig(level=logging.INFO)
 
 
 #commands
-""" async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    chat_id = update.effective_chat.id
-    text = update.message.text
-    print(f'user ({chat_id}) sent: "{text}"')
-    payload = {
-        'list_name': f"List from {chat_id}",
-        'items': text
-    }
 
-    async with aiohttp.ClientSession() as session:
-        async with session.post(FLASK_API_URL, json=payload) as resp:
-            if resp.status == 200:
-                data = await resp.json()
-                await update.message.reply_text(
-                    f"✅ רשימה חדשה נוצרה עם מזהה: <a href='https://maliknot.onrender.com/telegramlist/{data['list_id']}'>{data['list_id']}</a>",
-                    parse_mode="HTML"
-                )
-                #await update.message.reply_text(f"רשימה חדשה נוצרה עם מזהה: {data['list_id']}")
-            else:
-                await update.message.reply_text("אירעה שגיאה. נסה שוב.")
+""" async def handle_button_press(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    query = update.callback_query
+    await query.answer()  # Acknowledge the press
+
+    data = query.data
+
+    if data.startswith("showlist:"):
+        list_id = int(data.split(":")[1])
+
+        # Fetch items from Flask or DB directly if accessible
+        from HandelDB import database_read  # or wherever your DB logic is
+
+        items = database_read(
+            SELECT p.name, pl.quantity, pl.notes
+            FROM product_in_list pl
+            JOIN products p ON p.id = pl.product_id
+            WHERE pl.list_id = ?
+        , (list_id,))
+        print(items)
+        if not items:
+            await context.bot.send_message(chat_id=query.message.chat_id, text="❌ הרשימה ריקה או לא קיימת.")
+            return
+
+        message = f"📋 רשימת קניות #{list_id}:\n"
+        for item in items:
+            name = item['name']
+            quantity = item['quantity']
+            note = item['note']
+            line = f"- {name} ({quantity})"
+            if note:
+                line += f" - {note}"
+            message += line + "\n"
+        
+        print(message)
+        print(query.message.chat_id)
+        await context.bot.send_message(chat_id=query.message.chat_id, text=message)  # ✅ sends a new message
+        #await query.edit_message_text(message)
  """
 
 async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -56,8 +74,8 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
                 # Create inline keyboard with a button
                 keyboard = [
-                    [InlineKeyboardButton("📋 הצג את הרשימה", callback_data=f"showlist:{list_id}")]
-                ]                
+                    [InlineKeyboardButton("📋 הצג את הרשימה", url=url)]
+                ]               
                 reply_markup = InlineKeyboardMarkup(keyboard)
 
                 await update.message.reply_text(
@@ -67,43 +85,7 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
             else:
                 await update.message.reply_text("❌ אירעה שגיאה. נסה שוב.")
 
-async def handle_button_press(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    query = update.callback_query
-    await query.answer()  # Acknowledge the press
 
-    data = query.data
-
-    if data.startswith("showlist:"):
-        list_id = int(data.split(":")[1])
-
-        # Fetch items from Flask or DB directly if accessible
-        from HandelDB import database_read  # or wherever your DB logic is
-
-        items = database_read("""
-            SELECT p.name, pl.quantity, pl.notes
-            FROM product_in_list pl
-            JOIN products p ON p.id = pl.product_id
-            WHERE pl.list_id = ?
-        """, (list_id,))
-        print(items)
-        if not items:
-            await context.bot.send_message(chat_id=query.message.chat_id, text="❌ הרשימה ריקה או לא קיימת.")
-            return
-
-        message = f"📋 רשימת קניות #{list_id}:\n"
-        for item in items:
-            name = item['name']
-            quantity = item['quantity']
-            note = item['note']
-            line = f"- {name} ({quantity})"
-            if note:
-                line += f" - {note}"
-            message += line + "\n"
-        
-        print(message)
-        print(query.message.chat_id)
-        await context.bot.send_message(chat_id=query.message.chat_id, text=message)  # ✅ sends a new message
-        #await query.edit_message_text(message)
 
 
 
@@ -123,7 +105,7 @@ def run_bot():
     Botapp.add_handler(CommandHandler('start',start_command))
     #messages
     Botapp.add_handler(MessageHandler(filters.TEXT & (~filters.COMMAND), handle_message))
-    Botapp.add_handler(CallbackQueryHandler(handle_button_press))
+    #Botapp.add_handler(CallbackQueryHandler(handle_button_press))
     #errors
     Botapp.add_error_handler(error)
     print("pooling...")
