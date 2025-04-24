@@ -4,7 +4,7 @@ import asyncio
 import threading
 from flask import Flask
 from telegram import Update,InlineKeyboardButton, InlineKeyboardMarkup
-from telegram.ext import ApplicationBuilder,CommandHandler, MessageHandler, filters, ContextTypes
+from telegram.ext import ApplicationBuilder,CommandHandler, MessageHandler, filters, ContextTypes,CallbackQueryHandler
 
 
 
@@ -58,6 +58,10 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 keyboard = [
                     [InlineKeyboardButton("📋 הצג את הרשימה", url=url)]
                 ]
+                keyboard = [
+                    [InlineKeyboardButton("📋 הצג את הרשימה", callback_data=f"showlist:{list_id}")]
+                ]
+                
                 reply_markup = InlineKeyboardMarkup(keyboard)
 
                 await update.message.reply_text(
@@ -66,6 +70,43 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 )
             else:
                 await update.message.reply_text("❌ אירעה שגיאה. נסה שוב.")
+
+async def handle_button_press(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    query = update.callback_query
+    await query.answer()  # Acknowledge the press
+
+    data = query.data
+
+    if data.startswith("showlist:"):
+        list_id = int(data.split(":")[1])
+
+        # Fetch items from Flask or DB directly if accessible
+        from HandelDB import database_read  # or wherever your DB logic is
+
+        items = database_read("""
+            SELECT p.name, pl.quantity, pl.notes
+            FROM product_in_list pl
+            JOIN products p ON p.id = pl.product_id
+            WHERE pl.list_id = ?
+        """, (list_id,))
+
+        if not items:
+            await query.edit_message_text("❌ לא נמצאו פריטים ברשימה.")
+            return
+
+        message = f"📋 רשימת קניות #{list_id}:\n"
+        for item in items:
+            name = item['name']
+            quantity = item['quantity']
+            note = item['note']
+            line = f"- {name} ({quantity})"
+            if note:
+                line += f" - {note}"
+            message += line + "\n"
+        
+        await context.bot.send_message(chat_id=query.message.chat_id, text=message)  # ✅ sends a new message
+        #await query.edit_message_text(message)
+
 
 
 async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -84,6 +125,7 @@ def run_bot():
     Botapp.add_handler(CommandHandler('start',start_command))
     #messages
     Botapp.add_handler(MessageHandler(filters.TEXT & (~filters.COMMAND), handle_message))
+    Botapp.add_handler(CallbackQueryHandler(handle_button_press))
     #errors
     Botapp.add_error_handler(error)
     print("pooling...")

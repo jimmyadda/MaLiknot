@@ -495,7 +495,7 @@ def send_list_to_telegram(list_id):
 
     # 2. Fetch items in the list
     items = database_read("""
-        SELECT p.name, pl.quantity, pl.note
+        SELECT p.name, pl.quantity, pl.notes
         FROM product_in_list pl
         JOIN products p ON p.id = pl.product_id
         WHERE pl.list_id = ?
