@@ -152,8 +152,20 @@ async def handle_button_press(update: Update, context: ContextTypes.DEFAULT_TYPE
                 "INSERT INTO product_in_list (list_id, product_id, quantity, collected, notes) VALUES (?, ?, ?, 0, ?)",
                 (new_id, item['product_id'], item['quantity'], item['notes'])
             )
+            # Create inline msg with a button
+            keyboard = [
+                    [
+                        InlineKeyboardButton("📋 הצג את הרשימה", callback_data=f"showlist:{new_id}"),
+                        InlineKeyboardButton("🗑 מחק", callback_data=f"deletelist:{new_id}"),
+                        InlineKeyboardButton("🔁 שכפל", callback_data=f"duplicatelist:{new_id}")
+                    ]
+                ]           
+            reply_markup = InlineKeyboardMarkup(keyboard)
 
-        await context.bot.send_message(chat_id=query.message.chat_id, text=f"🔁 הרשימה שוכפלה. מזהה חדש: {new_id}")
+        await update.message.reply_text(
+                    f"🔁 הרשימה שוכפלה. מזהה חדש: {new_id}",
+                    reply_markup=reply_markup)
+        
 
 async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text(".שלום, אנא שילחו רשימת קניות מופרדת בפסיקים")
