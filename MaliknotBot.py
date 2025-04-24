@@ -153,8 +153,6 @@ async def handle_button_press(update: Update, context: ContextTypes.DEFAULT_TYPE
 
         await context.bot.send_message(chat_id=query.message.chat_id, text=f"🔁 הרשימה שוכפלה. מזהה חדש: {new_id}")
 
-
-
 async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text(".שלום, אנא שילחו רשימת קניות מופרדת בפסיקים")
     await update.message.reply_text("פורמט: product [quantity] [note]")
