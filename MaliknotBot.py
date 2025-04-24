@@ -100,7 +100,7 @@ async def handle_button_press(update: Update, context: ContextTypes.DEFAULT_TYPE
 
         # Fetch list items from your DB
         items = database_read("""
-            SELECT p.name, pl.quantity, pl.notes
+            SELECT p.name, pl.quantity, pl.notes,pl.collected
             FROM product_in_list pl
             JOIN products p ON p.id = pl.product_id
             WHERE pl.list_id = ?
@@ -115,7 +115,9 @@ async def handle_button_press(update: Update, context: ContextTypes.DEFAULT_TYPE
             name = item['name']
             quantity = item['quantity']
             note = item['notes']
-            line = f"- {name} ({quantity})"
+            collected = item['collected']
+            status = "✅" if collected > 0 else "❌"
+            line = f"- {name} ({quantity}) collected: {status}"
             if note:
                 line += f" - {note}"
             message += line + "\n"
