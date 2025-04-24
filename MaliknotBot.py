@@ -163,7 +163,7 @@ async def handle_button_press(update: Update, context: ContextTypes.DEFAULT_TYPE
                ]           
         reply_markup = InlineKeyboardMarkup(keyboard)
 
-        await update.message.reply_text(
+        await context.bot.send_message(
                     f"🔁 הרשימה שוכפלה. מזהה חדש: {new_id}",
                     reply_markup=reply_markup)
         
