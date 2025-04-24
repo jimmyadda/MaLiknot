@@ -3185,3 +3185,29 @@ Login successfull - 'jimmyadda'  date: 2025-04-24 00:34:17.915091
 {'userid': 'jimmyadda', 'email': 'addajimmy@gmail.com', 'name': 'Defaccount'}Has Logged in
 {'userid': 'jimmyadda', 'email': 'addajimmy@gmail.com', 'name': 'Defaccount'}Has Logged in
 {'userid': 'jimmyadda', 'email': 'addajimmy@gmail.com', 'name': 'Defaccount'}Has Logged in
+{'userid': 'jimmyadda', 'email': 'addajimmy@gmail.com', 'name': 'Defaccount'}Has Logged in
+{'userid': 'jimmyadda', 'email': 'addajimmy@gmail.com', 'name': 'Defaccount'}Has Logged in
+Login Failed - 'admin'  date: 2025-04-24 14:20:18.169862
+Exception on /register [POST]
+Traceback (most recent call last):
+  File "C:\Users\ajimmy\AppData\Local\Programs\Python\Python37\lib\site-packages\flask\app.py", line 2529, in wsgi_app
+    response = self.full_dispatch_request()
+  File "C:\Users\ajimmy\AppData\Local\Programs\Python\Python37\lib\site-packages\flask\app.py", line 1825, in full_dispatch_request
+    rv = self.handle_user_exception(e)
+  File "C:\Users\ajimmy\AppData\Local\Programs\Python\Python37\lib\site-packages\flask\app.py", line 1823, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "C:\Users\ajimmy\AppData\Local\Programs\Python\Python37\lib\site-packages\flask\app.py", line 1799, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)
+  File "app.py", line 84, in registration_request
+    ok = create_account(form)
+  File "C:\Users\ajimmy\Python\MaLiknot\HandelDB.py", line 58, in create_account
+    ok = database_write(sql,record)
+  File "C:\Users\ajimmy\Python\MaLiknot\HandelDB.py", line 17, in database_write
+    row_affected = db.execute(sql, data).rowcount
+sqlite3.OperationalError: database is locked
+New User Created: admin
+{'userid': 'admin', 'email': 'test@gmail.com', 'name': 'admin'}Has Logged in
+Login successfull - 'admin'  date: 2025-04-24 14:21:36.515325
+{'userid': 'admin', 'email': 'test@gmail.com', 'name': 'admin'}Has Logged in
+{'userid': 'admin', 'email': 'test@gmail.com', 'name': 'admin'}Has Logged in
+{'userid': 'admin', 'email': 'test@gmail.com', 'name': 'admin'}Has Logged in
