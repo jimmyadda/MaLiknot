@@ -3,7 +3,7 @@ import aiohttp
 import asyncio
 import threading
 from flask import Flask
-from telegram import Update
+from telegram import Update,InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import ApplicationBuilder,CommandHandler, MessageHandler, filters, ContextTypes
 
 
@@ -15,7 +15,7 @@ logging.basicConfig(level=logging.INFO)
 
 
 #commands
-async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
+""" async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     chat_id = update.effective_chat.id
     text = update.message.text
     print(f'user ({chat_id}) sent: "{text}"')
@@ -28,9 +28,45 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
         async with session.post(FLASK_API_URL, json=payload) as resp:
             if resp.status == 200:
                 data = await resp.json()
-                await update.message.reply_text(f"רשימה חדשה נוצרה עם מזהה: {data['list_id']}")
+                await update.message.reply_text(
+                    f"✅ רשימה חדשה נוצרה עם מזהה: <a href='https://maliknot.onrender.com/telegramlist/{data['list_id']}'>{data['list_id']}</a>",
+                    parse_mode="HTML"
+                )
+                #await update.message.reply_text(f"רשימה חדשה נוצרה עם מזהה: {data['list_id']}")
             else:
                 await update.message.reply_text("אירעה שגיאה. נסה שוב.")
+ """
+
+async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    chat_id = update.effective_chat.id
+    text = update.message.text
+    print(f'user ({chat_id}) sent: "{text}"')
+
+    payload = {
+        'list_name': f"List from {chat_id}",
+        'items': text
+    }
+
+    async with aiohttp.ClientSession() as session:
+        async with session.post(FLASK_API_URL, json=payload) as resp:
+            if resp.status == 200:
+                data = await resp.json()
+                list_id = data['list_id']
+                url = f"https://maliknot.onrender.com/telegramlist/{list_id}"
+
+                # Create inline keyboard with a button
+                keyboard = [
+                    [InlineKeyboardButton("📋 הצג את הרשימה", url=url)]
+                ]
+                reply_markup = InlineKeyboardMarkup(keyboard)
+
+                await update.message.reply_text(
+                    f"✅ רשימה חדשה נוצרה עם מזהה: {list_id}",
+                    reply_markup=reply_markup
+                )
+            else:
+                await update.message.reply_text("❌ אירעה שגיאה. נסה שוב.")
+
 
 async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text(".שלום, אנא שילחו רשימת קניות מופרדת בפסיקים")

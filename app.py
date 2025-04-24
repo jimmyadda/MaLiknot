@@ -481,6 +481,48 @@ def check_and_notify_list_completion(list_id):
     if items and all(item['collected'] for item in items):
         send_telegram_message(chat_id, f"✅ כל הפריטים ברשימה שלך נאספו בהצלחה! (#{list_id})")
 
+@app.route('/telegramlist/<int:list_id>')
+def send_list_to_telegram(list_id):
+    # 1. Fetch list name and extract chat ID
+    list_info = database_read("SELECT name FROM lists WHERE id = ?", (list_id,))
+    if not list_info:
+        return "List not found", 404
+
+    list_name = list_info[0]['name']
+    chat_id = extract_chat_id(list_name)
+    if not chat_id:
+        return "Chat ID not found in list name", 400
+
+    # 2. Fetch items in the list
+    items = database_read("""
+        SELECT p.name, pl.quantity, pl.note
+        FROM product_in_list pl
+        JOIN products p ON p.id = pl.product_id
+        WHERE pl.list_id = ?
+    """, (list_id,))
+
+    if not items:
+        return "No items found in list", 404
+
+    # 3. Build message text
+    message = f"📋 רשימת קניות #{list_id}:\n"
+    for item in items:
+        name = item['name']
+        quantity = item['quantity']
+        note = item['note']
+        line = f"- {name} ({quantity})"
+        if note:
+            line += f" - {note}"
+        message += line + "\n"
+
+    # 4. Send to Telegram
+    result = send_telegram_message(chat_id, message)
+    if not result.get("ok"):
+        return jsonify({"error": "Failed to send to Telegram", "response": result}), 500
+
+    return f"✅ List #{list_id} sent to Telegram chat {chat_id}!"
+
+
 
 if __name__ == "__main__":
     print("Starting Flask in background thread...")
