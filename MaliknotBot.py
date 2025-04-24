@@ -6,6 +6,8 @@ from flask import Flask
 from telegram import Update,InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import ApplicationBuilder,CommandHandler, MessageHandler, filters, ContextTypes,CallbackQueryHandler
 
+from HandelDB import database_read
+
 
 
 BOT_TOKEN = '7807618025:AAGKA3jxR2qFsA1F5yfkbaJuqJo40GW5kFs'
@@ -86,7 +88,39 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 await update.message.reply_text("❌ אירעה שגיאה. נסה שוב.")
 
 
+async def handle_button_press(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    query = update.callback_query
+    await query.answer()  # ✅ Always respond to Telegram or the button will appear stuck
 
+    data = query.data
+    print(f"Callback data received: {data}")
+
+    if data.startswith("showlist:"):
+        list_id = int(data.split(":")[1])
+
+        # Fetch list items from your DB
+        items = database_read("""
+            SELECT p.name, pl.quantity, pl.notes
+            FROM product_in_list pl
+            JOIN products p ON p.id = pl.product_id
+            WHERE pl.list_id = ?
+        """, (list_id,))
+         
+        if not items:
+            await context.bot.send_message(chat_id=query.message.chat_id, text="❌ הרשימה ריקה או לא קיימת.")
+            return
+
+        message = f"📋 רשימת קניות #{list_id}:\n"
+        for item in items:
+            name = item['name']
+            quantity = item['quantity']
+            note = item['notes']
+            line = f"- {name} ({quantity})"
+            if note:
+                line += f" - {note}"
+            message += line + "\n"
+
+        await context.bot.send_message(chat_id=query.message.chat_id, text=message)
 
 
 async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -105,7 +139,7 @@ def run_bot():
     Botapp.add_handler(CommandHandler('start',start_command))
     #messages
     Botapp.add_handler(MessageHandler(filters.TEXT & (~filters.COMMAND), handle_message))
-    #Botapp.add_handler(CallbackQueryHandler(handle_button_press))
+    Botapp.add_handler(CallbackQueryHandler(handle_button_press))
     #errors
     Botapp.add_error_handler(error)
     print("pooling...")
