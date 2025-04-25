@@ -29,6 +29,8 @@ app.secret_key = "dsvnjksnvjksdvnsjkvnsjvsvs"
 
 
 create_db()
+
+
 grocery_lists = {}  # Dictionary to hold lists: { "List Name": [ {name, collected}, ... ] }
 #Logs
 handler = logging.FileHandler('LogFile.log') # creates handler for the log file
@@ -40,9 +42,6 @@ logger = app.logger
 login_manager = flask_login.LoginManager()
 login_manager.init_app(app)
 
-print(app)
-print(type(app))
-      
 @app.context_processor
 def inject_user():
     return dict(user=flask_login.current_user)
