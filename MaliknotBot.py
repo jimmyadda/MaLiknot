@@ -72,7 +72,7 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
             if resp.status == 200:
                 data = await resp.json()
                 list_id = data['list_id']
-                url = f"https://maliknot.onrender.com/telegramlist/{list_id}"
+                url = f"https://maliknot1bot.pythonanywhere.com/telegramlist/{list_id}"
 
                 # Create inline keyboard with a button
                 keyboard = [
@@ -180,7 +180,7 @@ async def error(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 
 def run_bot():
-    print("runnaing bot onRender")
+    print("runnaing bot python anywhere")
     Botapp = ApplicationBuilder().token(BOT_TOKEN).build()
     #commands
     Botapp.add_handler(CommandHandler('start',start_command))
