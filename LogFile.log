@@ -3211,3 +3211,7 @@ Login successfull - 'admin'  date: 2025-04-24 14:21:36.515325
 {'userid': 'admin', 'email': 'test@gmail.com', 'name': 'admin'}Has Logged in
 {'userid': 'admin', 'email': 'test@gmail.com', 'name': 'admin'}Has Logged in
 {'userid': 'admin', 'email': 'test@gmail.com', 'name': 'admin'}Has Logged in
+{'userid': 'jimmyadda', 'email': 'addajimmy@gmail.com', 'name': 'Defaccount'}Has Logged in
+{'userid': 'jimmyadda', 'email': 'addajimmy@gmail.com', 'name': 'Defaccount'}Has Logged in
+{'userid': 'jimmyadda', 'email': 'addajimmy@gmail.com', 'name': 'Defaccount'}Has Logged in
+{'userid': 'jimmyadda', 'email': 'addajimmy@gmail.com', 'name': 'Defaccount'}Has Logged in
