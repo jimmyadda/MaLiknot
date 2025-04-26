@@ -3215,3 +3215,68 @@ Login successfull - 'admin'  date: 2025-04-24 14:21:36.515325
 {'userid': 'jimmyadda', 'email': 'addajimmy@gmail.com', 'name': 'Defaccount'}Has Logged in
 {'userid': 'jimmyadda', 'email': 'addajimmy@gmail.com', 'name': 'Defaccount'}Has Logged in
 {'userid': 'jimmyadda', 'email': 'addajimmy@gmail.com', 'name': 'Defaccount'}Has Logged in
+{'userid': 'jimmyadda', 'email': 'addajimmy@gmail.com', 'name': 'Defaccount'}Has Logged in
+{'userid': 'jimmyadda', 'email': 'addajimmy@gmail.com', 'name': 'Defaccount'}Has Logged in
+Exception on /list/9 [GET]
+Traceback (most recent call last):
+  File "C:\Users\ajimmy\AppData\Roaming\Python\Python313\site-packages\flask\app.py", line 1511, in wsgi_app
+    response = self.full_dispatch_request()
+  File "C:\Users\ajimmy\AppData\Roaming\Python\Python313\site-packages\flask\app.py", line 919, in full_dispatch_request
+    rv = self.handle_user_exception(e)
+  File "C:\Users\ajimmy\AppData\Roaming\Python\Python313\site-packages\flask\app.py", line 917, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "C:\Users\ajimmy\AppData\Roaming\Python\Python313\site-packages\flask\app.py", line 902, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)  # type: ignore[no-any-return]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "C:\Users\ajimmy\Projects\MaLiknot\MaLiknot\app.py", line 261, in view_list
+    list_name = database_read(f"select name from lists where id ='{list_id}';")[0]['name']
+                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^
+IndexError: list index out of range
+Exception on /list/16 [GET]
+Traceback (most recent call last):
+  File "C:\Users\ajimmy\AppData\Roaming\Python\Python313\site-packages\flask\app.py", line 1511, in wsgi_app
+    response = self.full_dispatch_request()
+  File "C:\Users\ajimmy\AppData\Roaming\Python\Python313\site-packages\flask\app.py", line 919, in full_dispatch_request
+    rv = self.handle_user_exception(e)
+  File "C:\Users\ajimmy\AppData\Roaming\Python\Python313\site-packages\flask\app.py", line 917, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "C:\Users\ajimmy\AppData\Roaming\Python\Python313\site-packages\flask\app.py", line 902, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)  # type: ignore[no-any-return]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "C:\Users\ajimmy\Projects\MaLiknot\MaLiknot\app.py", line 261, in view_list
+    list_name = database_read(f"select name from lists where id ='{list_id}';")[0]['name']
+                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^
+IndexError: list index out of range
+Exception on /list/2 [GET]
+Traceback (most recent call last):
+  File "C:\Users\ajimmy\AppData\Roaming\Python\Python313\site-packages\flask\app.py", line 1511, in wsgi_app
+    response = self.full_dispatch_request()
+  File "C:\Users\ajimmy\AppData\Roaming\Python\Python313\site-packages\flask\app.py", line 919, in full_dispatch_request
+    rv = self.handle_user_exception(e)
+  File "C:\Users\ajimmy\AppData\Roaming\Python\Python313\site-packages\flask\app.py", line 917, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "C:\Users\ajimmy\AppData\Roaming\Python\Python313\site-packages\flask\app.py", line 902, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)  # type: ignore[no-any-return]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "C:\Users\ajimmy\Projects\MaLiknot\MaLiknot\app.py", line 261, in view_list
+    list_name = database_read(f"select name from lists where id ='{list_id}';")[0]['name']
+                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^
+IndexError: list index out of range
+{'userid': 'jimmyadda', 'email': 'addajimmy@gmail.com', 'name': 'Defaccount'}Has Logged in
+Exception on /list/4 [GET]
+Traceback (most recent call last):
+  File "C:\Users\ajimmy\AppData\Roaming\Python\Python313\site-packages\flask\app.py", line 1511, in wsgi_app
+    response = self.full_dispatch_request()
+  File "C:\Users\ajimmy\AppData\Roaming\Python\Python313\site-packages\flask\app.py", line 919, in full_dispatch_request
+    rv = self.handle_user_exception(e)
+  File "C:\Users\ajimmy\AppData\Roaming\Python\Python313\site-packages\flask\app.py", line 917, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "C:\Users\ajimmy\AppData\Roaming\Python\Python313\site-packages\flask\app.py", line 902, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)  # type: ignore[no-any-return]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "C:\Users\ajimmy\Projects\MaLiknot\MaLiknot\app.py", line 261, in view_list
+    list_name = database_read(f"select name from lists where id ='{list_id}';")[0]['name']
+                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^
+IndexError: list index out of range
+{'userid': 'jimmyadda', 'email': 'addajimmy@gmail.com', 'name': 'Defaccount'}Has Logged in
+{'userid': 'jimmyadda', 'email': 'addajimmy@gmail.com', 'name': 'Defaccount'}Has Logged in

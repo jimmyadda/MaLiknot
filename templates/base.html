@@ -43,8 +43,9 @@
         }
       </script>
     <body>
-        <!-- Navigation-->
-        {% include 'navbar.html' %}
+        {%if user.is_authenticated%}
+          {% include 'navbar.html' %}
+       {%endif%}
         <!-- Header-->
         <div>
         {% with messages = get_flashed_messages(with_categories=true) %}

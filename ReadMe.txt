@@ -5,7 +5,7 @@ This app combines a web interface with a Telegram bot to help you manage grocery
 
 LIVE DEMO
 ---------
-Web App: https://maliknot.onrender.com
+Web App: https://maliknot1bot.pythonanywhere.com
 Demo User Login:
 - Username: admin
 - Password: pass
