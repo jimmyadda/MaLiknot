@@ -21,6 +21,9 @@ import nest_asyncio  # <- PATCH LOOP
 from MaliknotBot import application  # adjust if needed
 from internal_logic  import add_list_from_telegram # type: ignore
 from telegram import Update
+from flask import send_from_directory
+
+
 
 
 app = Flask(__name__)
@@ -41,6 +44,11 @@ logger = app.logger
 #Log in 
 login_manager = flask_login.LoginManager()
 login_manager.init_app(app)
+
+
+@app.route('/manifest.json')
+def manifest():
+    return send_from_directory('static', 'manifest.json')
 
 @app.context_processor
 def inject_user():
@@ -479,8 +487,6 @@ def check_and_notify_list_completion(list_id):
 
     if items and all(item['collected'] for item in items):
             send_telegram_message(chat_id, f"✅ כל הפריטים ברשימה שלך נאספו בהצלחה! (#{list_id})")
-
-
 
 def run_flask():
     app.run(host="0.0.0.0", port=5000)
