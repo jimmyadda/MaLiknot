@@ -10,7 +10,6 @@ from threading import Thread
 import threading
 from flask import Flask, jsonify, send_file,flash,g,render_template,request,redirect, send_from_directory, session, url_for
 import flask_login
-import requests
 from grocery_list import create_db
 from HandelDB import database_read,database_write,create_account
 import uuid
@@ -18,19 +17,18 @@ import logging
 import hashlib
 from telegram_utils import send_telegram_message, extract_chat_id
 import nest_asyncio  # <- PATCH LOOP
-from MaliknotBot import application  # adjust if needed
-from internal_logic  import add_list_from_telegram # type: ignore
+from MaliknotBot import run_bot
+from telegram.ext import ApplicationBuilder, CommandHandler, MessageHandler, filters
 from telegram import Update
+from telegram.ext import ContextTypes
 
 
 app = Flask(__name__)
 app.secret_key = "dsvnjksnvjksdvnsjkvnsjvsvs"
 
 
-WEBHOOK_URL = 'https://maliknot1bot.pythonanywhere.com/telegram'  # or your correct route
+
 create_db()
-
-
 grocery_lists = {}  # Dictionary to hold lists: { "List Name": [ {name, collected}, ... ] }
 #Logs
 handler = logging.FileHandler('LogFile.log') # creates handler for the log file
@@ -42,6 +40,9 @@ logger = app.logger
 login_manager = flask_login.LoginManager()
 login_manager.init_app(app)
 
+print(app)
+print(type(app))
+      
 @app.context_processor
 def inject_user():
     return dict(user=flask_login.current_user)
@@ -384,18 +385,13 @@ def add_header(response):
         response.headers['Content-Type'] = 'application/manifest+json'
     return response
 
-@app.route('/telegram', methods=['POST'])
-def telegram_webhook():
-    update = request.get_json()
-    print(">>> /telegram hit")
-    print(">>> Incoming update:", update)
 
-    if update:
-        telegram_update = Update.de_json(update, application.bot)
-        application.update_queue.put_nowait(telegram_update)
+def run_flask():
+    port = int(os.environ.get("PORT", 5000))  # use Render's assigned port or fallback to 5000
+    app.run(host="0.0.0.0", port=port)
 
-    return '', 200
 
+#Bot - API
 @app.route('/api/add_list_from_telegram', methods=['POST'])
 def add_list_from_telegram():
     data = request.get_json()
@@ -479,21 +475,20 @@ def check_and_notify_list_completion(list_id):
 
     if items and all(item['collected'] for item in items):
             send_telegram_message(chat_id, f"✅ כל הפריטים ברשימה שלך נאספו בהצלחה! (#{list_id})")
-
-
-
-def run_flask():
-    app.run(host="0.0.0.0", port=5000)
-
-def run_bot():
-    print("Starting bot polling...")
-    nest_asyncio.apply()  # Allow asyncio inside Flask
-    application.run_polling()
+   
 
 if __name__ == "__main__":
     print("Starting Flask in background thread...")
-    flask_thread = threading.Thread(target=run_flask)
+    flask_thread = threading.Thread(target=run_flask, daemon=True)
     flask_thread.start()
 
     print("Starting Telegram bot in main thread...")
-    run_bot()
+    nest_asyncio.apply()
+    run_bot()  # <- Main thread, will block and stay alive
+
+
+""" if __name__ == "__main__":
+    threading.Thread(target=run_flask, daemon=True).start()
+    # Patch the loop to allow nesting
+    nest_asyncio.apply()
+    asyncio.run(run_bot()) """
