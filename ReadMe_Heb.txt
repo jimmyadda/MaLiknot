@@ -5,7 +5,7 @@
 
 דמו חי
 -------
-אתר: https://maliknot.onrender.com  
+אתר: https://maliknot1bot.pythonanywhere.com  
 משתמש דמו:
 - שם משתמש: admin  
 - סיסמה: pass

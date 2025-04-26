@@ -32,7 +32,7 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     result = add_list_from_telegram(payload)
 
     list_id = result['list_id']
-
+    url = f"https://maliknot1bot.pythonanywhere.com/list/{list_id}"
     # Create reply
                 # Create inline keyboard with a button
     keyboard = [
@@ -43,9 +43,9 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
                     ]
                 ]           
     reply_markup = InlineKeyboardMarkup(keyboard)
-
+    
     await update.message.reply_text(
-                    f"✅ רשימה חדשה נוצרה עם מזהה: {list_id}",
+                    f"✅ רשימה חדשה נוצרה!\n📋 לצפייה ברשימה: {url}\n🔗 ניתן לשתף קישור זה",
                     reply_markup=reply_markup
                 )
 
