@@ -486,7 +486,7 @@ def check_and_notify_list_completion(list_id):
     """, (list_id,))
 
     if items and all(item['collected'] for item in items):
-            ok = database_write("update lists set WHERE archived=1 id = ?", (list_id,))
+            ok = database_write("update lists set archived=1 WHERE id = ?", (list_id,))
             send_telegram_message(chat_id, f"✅ כל הפריטים ברשימה שלך נאספו בהצלחה! (#{list_id})")
 
 def run_flask():
