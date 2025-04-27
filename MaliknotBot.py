@@ -6,7 +6,7 @@ from telegram import Update,InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import ApplicationBuilder,CommandHandler, MessageHandler, filters, ContextTypes,CallbackQueryHandler
 import requests
 from HandelDB import database_read,database_write
-from internal_logic  import add_list_from_telegram # type: ignore
+from internal_logic  import add_list_from_telegram 
 
 WEBHOOK_URL = 'https://maliknot1bot.pythonanywhere.com/telegram'  # or your correct route
 
