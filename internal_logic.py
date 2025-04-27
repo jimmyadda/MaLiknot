@@ -48,8 +48,15 @@ def add_list_from_telegram(data):
         list_id = existing_list[0]['id']
         print(list_id)
     else:
-        database_write("INSERT INTO lists (name) VALUES (?)", (list_name,))
-        list_id = database_read("SELECT max(id) as id FROM lists")[0]['id']
+        # Check if an archived list exists
+        archived_list = database_read("SELECT id FROM lists WHERE name = ? AND archived = 1", (list_name,))
+        if archived_list:
+            # ✅ Archived list found → rename it (add '-archived')
+            print("Found archived list, renaming it...")
+            database_write("UPDATE lists SET name = name || '-archived' WHERE id = ?", (archived_list[0]['id'],))
+        else:
+            database_write("INSERT INTO lists (name) VALUES (?)", (list_name,))
+            list_id = database_read("SELECT max(id) as id FROM lists")[0]['id']
 
     for item in item_details:
         product = item['product']
