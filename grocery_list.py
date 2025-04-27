@@ -88,6 +88,9 @@ def create_db():
         for item in items:
             cursor.execute("INSERT INTO products (name, category_id) VALUES (?, ?)", (item, category_id))
     
+    
+    cursor.execute("ALTER TABLE lists ADD COLUMN archived INTEGER DEFAULT 0;")
+
     conn.commit()
     conn.close()
     print("Database created successfully!")

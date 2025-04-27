@@ -42,7 +42,7 @@ def add_list_from_telegram(data):
 
     print("item_details", item_details)
 
-    existing_list = database_read("SELECT id FROM lists WHERE name = ?", (list_name,))
+    existing_list = database_read("SELECT id FROM lists WHERE name = ? and archived=0 ", (list_name,))
     if existing_list:
         print(existing_list)
         list_id = existing_list[0]['id']
