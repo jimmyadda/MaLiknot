@@ -190,14 +190,14 @@
               console.log("mobile");
                 // Mobile - use SweetAlert
                 Swal.fire({
-                  title: 'פריט הוסר',
-                  text: 'הפריט הוסר מהרשימה בהצלחה',
+                  title: 'פריט נוסף',
+                  text: 'הפריט התווסף לרשימה בהצלחה',
                   icon: 'success',
                   confirmButtonText: 'אישור'
                 });
               } else {
                 // Desktop - use $.notify
-                $.notify("פריט הוסר מרשימה", "success");
+                $.notify("פריט התווסף לרשימה", "success");
               }
           } else {
             $.notify("Error inserting Product", "error" );
@@ -257,12 +257,12 @@ function DelProductFromList(button) {
                 Swal.fire({
                   title: 'פריט הוסר',
                   text: 'הפריט הוסר מהרשימה בהצלחה',
-                  icon: 'success',
+                  icon: 'info',
                   confirmButtonText: 'אישור'
                 });
               } else {
                 // Desktop - use $.notify
-                $.notify("פריט הוסר מרשימה", "success");
+                $.notify("פריט הוסר מרשימה", "info");
               }
           } else {
             $.notify("Error deleting Product", "error" );
