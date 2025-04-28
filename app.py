@@ -346,11 +346,11 @@ def Remove_product_from_list():
         sql= f"Delete from product_in_list where list_id= '{list_id}' and  product_id = '{product_id}';"
         ok = database_write(sql)
         print(ok)
-        if ok == 1 :
+        if ok > 0 :
             flash(f"Product removed from list!", "success")
             return render_template('list.html',list_id=list_id)
         else:
-            flash(f"Failed to remove product", "Error")  
+            flash(f"Failed to remove product", "error")  
             return jsonify({'error': 'Missing required fields'}), 400
         
     except sqlite3.Error as e:

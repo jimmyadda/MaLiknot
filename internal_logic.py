@@ -4,6 +4,7 @@ from HandelDB import database_read, database_write
 
 
 def add_list_from_telegram(data):
+    
     print("Incoming data:", data)
 
     # DO NOT CONVERT to JSON here. Data is already a dictionary!
