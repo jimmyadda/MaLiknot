@@ -89,7 +89,7 @@ def create_db():
             cursor.execute("INSERT INTO products (name, category_id) VALUES (?, ?)", (item, category_id))
     
     
-    cursor.execute("ALTER TABLE lists ADD COLUMN archived INTEGER DEFAULT 0;")
+    #cursor.execute("ALTER TABLE lists ADD COLUMN archived INTEGER DEFAULT 0;")
 
     conn.commit()
     conn.close()
