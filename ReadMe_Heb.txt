@@ -49,11 +49,11 @@
 - SQLite
 - Bootstrap 5 ו-jQuery
 - ספריית python-telegram-bot
-- אירוח ב-Render (https://render.com)
+- אירוח ב-pythonanywhere (https://pythonanywhere.com)
 
 איך לנסות את זה
 -----------------
-1. כנסו ל: https://maliknot.onrender.com  
+1. כנסו ל: https://maliknot1bot.pythonanywhere.com
 2. התחברו עם:
    שם משתמש: admin  
    סיסמה: pass  

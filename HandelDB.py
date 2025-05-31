@@ -5,7 +5,9 @@ import uuid
 import getpass
 import json
 
-database_filename = 'grocery_list.db'
+from config import DATABASE_PATH
+
+database_filename = connection = DATABASE_PATH
 
 
 def database_write(sql,data=None):

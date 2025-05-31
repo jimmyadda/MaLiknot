@@ -1,9 +1,9 @@
 import sqlite3
-import os 
+import os
 
-def create_db():
-    
-    db_name = "grocery_list.db"
+from config import DATABASE_PATH as db_name
+
+def create_db():    
     if os.path.exists(db_name):
         print("Database already exists!")
         return

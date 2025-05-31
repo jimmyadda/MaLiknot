@@ -50,11 +50,11 @@ TECH STACK
 - SQLite
 - Bootstrap 5 + jQuery
 - python-telegram-bot library
-- Hosted on Render (https://render.com)
+- Hosted on pythonanywhere (https://pythonanywhere.com)
 
 TRY IT OUT
 ----------
-1. Visit https://maliknot.onrender.com
+1. Visit https://maliknot1bot.pythonanywhere.com
 2. Log in using:
    Username: admin
    Password: pass
