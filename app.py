@@ -249,12 +249,12 @@ def delete_product(product_id):
 def view_list(list_id):
     #items  in list
     list_items_data = []  # make this a list
-    items = database_read(f"select * from product_in_list where list_id ='{list_id}';")
+    items = database_read(f"select * from product_in_list where list_id ='{list_id}' order by collected desc;")
     list_data = database_read(f"select * from product_in_list where list_id ='{list_id}';")
     if items:
         for item in items:
             product_id = item['product_id']         
-            item_data =  database_read(f"select pl.*,p.* from products p inner JOIN product_in_list  pl on pl.product_id = p.id where p.id ='{product_id}' and list_id='{list_id}';")
+            item_data =  database_read(f"select pl.*,p.* from products p inner JOIN product_in_list  pl on pl.product_id = p.id where p.id ='{product_id}' and list_id='{list_id}' order by collected desc ;")
             if item_data:
                 list_items_data.append(item_data[0])
     print(list_id)
