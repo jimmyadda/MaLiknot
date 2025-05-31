@@ -257,9 +257,13 @@ def view_list(list_id):
             item_data =  database_read(f"select pl.*,p.* from products p inner JOIN product_in_list  pl on pl.product_id = p.id where p.id ='{product_id}' and list_id='{list_id}';")
             if item_data:
                 list_items_data.append(item_data[0])
-    #print(list_items_data)
-    list_name = database_read(f"select name from lists where id ='{list_id}';")[0]['name']
-    
+    print(list_id)
+    list_name_obj = database_read(f"select name from lists where id ='{list_id}';")
+    print(list_name_obj)
+    if list_name_obj:
+        list_name = list_name_obj[0]['name']
+    else:
+        list_name = " "
     items_data = database_read(f"select p.*,cat.name as catName from products p left JOIN categories cat on category_id = cat.id")
     categories =  database_read(f"select * from categories order by name;")   
     return render_template("list.html", list_id=list_id,list_data=list_data, items=list_items_data,list_name=list_name,all_items=items_data,categories=categories)
@@ -307,7 +311,7 @@ def add_product_to_list():
             flash(f"Product Added to list!", "success")
             return render_template('list.html',list_id=list_id)
         else:
-            flash(f"Failed to add product", "Error")  
+            flash(f"Failed to add product", "error")  
             return jsonify({'error': 'Missing required fields'}), 400
         
       except sqlite3.Error as e:
