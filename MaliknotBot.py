@@ -30,8 +30,10 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     # Instead of doing HTTP POST, just call function!
     result = add_list_from_telegram(payload)
-
+    
     list_id = result['list_id']
+    created = result.get('created', False)
+
     url = f"https://maliknot1bot.pythonanywhere.com/list/{list_id}"
     # Create reply
                 # Create inline keyboard with a button
@@ -43,9 +45,14 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
                     ]
                 ]           
     reply_markup = InlineKeyboardMarkup(keyboard)
-    
-    await update.message.reply_text(
-                    f"✅ רשימה חדשה נוצרה!\n📋 לצפייה ברשימה: {url}\n🔗 ניתן לשתף קישור זה",
+    if created:
+        await update.message.reply_text(
+                    f"✅ רשימה חדשה נוצרה! {list_id}\n📋 לצפייה ברשימה: {url}\n🔗 ניתן לשתף קישור זה",
+                    reply_markup=reply_markup
+                )
+    else:
+                await update.message.reply_text(
+                    f"✅ הפריטים התווספו לרשימה {list_id}!\n📋 לצפייה ברשימה: {url}\n🔗 ניתן לשתף קישור זה",
                     reply_markup=reply_markup
                 )
 
