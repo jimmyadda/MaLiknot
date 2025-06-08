@@ -101,11 +101,12 @@ def create_db():
     
     # Create tables
     cursor.execute('''
-        CREATE TABLE IF NOT EXISTS lists (
-            id SERIAL PRIMARY KEY,
-            name TEXT UNIQUE,
-            archived INTEGER DEFAULT 0
-        );
+            CREATE TABLE "lists" (
+                id	INTEGER,
+                name	TEXT,
+                archived	INTEGER DEFAULT 0,
+                PRIMARY KEY("id" AUTOINCREMENT)
+            );
     ''')
     
     cursor.execute('''
