@@ -175,8 +175,9 @@ def close_connection(exception):
 
 @app.route('/category/<category_name>')
 def category_name(category_name):
+    categories =  database_read(f"select * from categories order by name;")
     cat_items = database_read(f"select p.*,cat.name as catName from products p left JOIN categories  cat on category_id = cat.id where cat.name ='{category_name}';")
-    return render_template('category.html', cat=category_name,cat_items=cat_items)
+    return render_template('category.html', cat=category_name,cat_items=cat_items,categories=categories)
 
 
 @app.route('/product/<product_id>')
