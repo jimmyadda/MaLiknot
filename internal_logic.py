@@ -47,7 +47,7 @@ def add_list_from_telegram(data):
     if existing_list:
         print(existing_list)
         list_id = existing_list[0]['id']
-        print(list_id)
+        created = False
     else:
         # Check if an archived list exists
         archived_list = database_read("SELECT id FROM lists WHERE name = ? AND archived = 1", (list_name,))
@@ -58,6 +58,7 @@ def add_list_from_telegram(data):
         else:
             database_write("INSERT INTO lists (name) VALUES (?)", (list_name,))
             list_id = database_read("SELECT max(id) as id FROM lists")[0]['id']
+            created = True
 
     for item in item_details:
         product = item['product']
@@ -76,4 +77,4 @@ def add_list_from_telegram(data):
             VALUES (?, ?, ?, ?, ?)
         """, (list_id, product_id, quantity, 0, note))
 
-    return {"status": "success", "list_id": list_id}
+    return {"status": "success", "list_id": list_id, "created": created}
