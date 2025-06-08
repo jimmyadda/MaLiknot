@@ -51,7 +51,7 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
                     reply_markup=reply_markup
                 )
     else:
-                await update.message.reply_text(
+        await update.message.reply_text(
                     f"✅ הפריטים התווספו לרשימה {list_id}!\n📋 לצפייה ברשימה: {url}\n🔗 ניתן לשתף קישור זה",
                     reply_markup=reply_markup
                 )
