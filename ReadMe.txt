@@ -1,63 +1,72 @@
-Ma Liknot - Smart Grocery List App
-==================================
+MaLiknot – Smart Grocery List App
 
-This app combines a web interface with a Telegram bot to help you manage grocery lists quickly and easily.
+All-in-One Web + Telegram Bot for Managing Your Shopping Lists
+🌐 LIVE DEMO
 
-LIVE DEMO
----------
-Web App: https://maliknot1bot.pythonanywhere.com
+Web App: https://web-production-feec9.up.railway.app
 Demo User Login:
-- Username: admin
-- Password: pass
 
-TELEGRAM BOT
-------------
+    Username: admin
+
+    Password: pass
+
+🤖 TELEGRAM BOT
+
 Bot Username: @Maliknot_bot
-Link: https://t.me/Maliknot_bot
+🔧 BOT FEATURES
 
-BOT FEATURES
-------------
-- Send a message like:
-    חלב 2, תפוח 5 ירוק, לחם 1 פרוס
+Send a message like:
 
-  The bot will:
-  - Create a new list
-  - Parse products, quantities, and notes
-  - Reply with:
-    ✅ List ID confirmation
-    📋 "View List" button (opens chat message with item breakdown)
-    🗑 "Delete" button (removes the list)
-    🔁 "Duplicate" button (creates a copy of the list)
+חלב 2, תפוח 5 ירוק, לחם 1 פרוס
 
-- The list is automatically stored in the web app.
+The bot will:
 
-- You can also click buttons to view the list with ✅ for collected and ❌ for uncollected items.
+    🆕 Create a new grocery list
 
-WEB APP FEATURES (Flask)
--------------------------
-- Web interface to:
-  - View all grocery lists
-  - Add new items
-  - Mark items as collected
-  - Automatically detect when all items are collected
-  - Optional: trigger a Telegram message when the list is completed
+    🧠 Parse products, quantities, and notes
 
-- All changes made in the web app are reflected in Telegram (and vice versa)
+    ✅ Reply with:
 
-TECH STACK
-----------
-- Python 3 / Flask
-- SQLite
-- Bootstrap 5 + jQuery
-- python-telegram-bot library
-- Hosted on pythonanywhere (https://pythonanywhere.com)
+        List confirmation
 
-TRY IT OUT
-----------
-1. Visit https://maliknot1bot.pythonanywhere.com
-2. Log in using:
-   Username: admin
-   Password: pass
-3. Or send a list to the bot: @Maliknot_bot
+        📋 “View List” button (shows items)
 
-Enjoy!
+        🗑 “Delete” button
+
+        🔁 “Duplicate” button
+
+All lists are saved to the web app and synced across both interfaces.
+💻 WEB APP FEATURES (Flask + SQLite)
+
+    📋 View all grocery lists
+
+    ➕ Add or edit items
+
+    ✅ Mark items as collected
+
+    🔔 Auto-detect completed lists + send Telegram message
+
+    🔄 Real-time sync with the Telegram bot
+
+⚙️ TECH STACK
+
+    Python 3.11 / Flask
+
+    SQLite
+
+    Bootstrap 5 + jQuery
+
+    python-telegram-bot
+
+    Hosted on Railway
+
+🚀 TRY IT OUT
+
+    Visit: https://web-production-feec9.up.railway.app
+    Login with:
+
+        Username: admin
+
+        Password: pass
+
+    Or send a list to: @Maliknot_bot
