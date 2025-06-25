@@ -179,6 +179,7 @@ async def handle_button_press(update: Update, context: ContextTypes.DEFAULT_TYPE
 
 # START command
 async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    print(">>> inside start_command handler")
     await update.message.reply_text(".שלום, אנא שילחו רשימת קניות מופרדת בפסיקים")
     await update.message.reply_text("פורמט: product [quantity] [note]")
     await update.message.reply_text(" python anywhere לדוגמא: חלב 2, תפוח 5 ירוק, לחם 1 פרוס")

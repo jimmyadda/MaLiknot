@@ -405,6 +405,8 @@ def telegram_webhook():
 
     if update:
         telegram_update = Update.de_json(update, application.bot)
+        print(">>> dispatching to bot application")
+        print(application.handlers)  # Print registered handlers
         application.update_queue.put_nowait(telegram_update)
 
     return '', 200
