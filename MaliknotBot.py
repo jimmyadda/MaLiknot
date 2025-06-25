@@ -3,8 +3,8 @@ import logging
 import asyncio
 import threading
 from telegram import Update,InlineKeyboardButton, InlineKeyboardMarkup
-from telegram.ext import Application,ApplicationBuilder,CommandHandler, MessageHandler, filters, ContextTypes,CallbackQueryHandler
-from telegram.request import AiohttpRequest
+from telegram.ext import ApplicationBuilder,CommandHandler, MessageHandler, filters, ContextTypes,CallbackQueryHandler
+
 from aiohttp import ClientSession, TCPConnector
 #import requests
 from HandelDB import database_read,database_write
@@ -61,11 +61,14 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
                     f"✅ רשימה חדשה נוצרה! {list_id}\n📋 לצפייה ברשימה: {url}\n🔗 ניתן לשתף קישור זה",
                     reply_markup=reply_markup
                 )
+        await asyncio.sleep(0.1)
+        
     else:
         await update.message.reply_text(
                     f"✅ הפריטים התווספו לרשימה {list_id}!\n📋 לצפייה ברשימה: {url}\n🔗 ניתן לשתף קישור זה",
                     reply_markup=reply_markup
                 )
+        await asyncio.sleep(0.1)
 
 
 """ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -186,6 +189,7 @@ async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text(".שלום, אנא שילחו רשימת קניות מופרדת בפסיקים")
     await update.message.reply_text("פורמט: product [quantity] [note]")
     await update.message.reply_text(" python anywhere לדוגמא: חלב 2, תפוח 5 ירוק, לחם 1 פרוס")
+    await asyncio.sleep(0.1)
 
 async def error(update: Update, context: ContextTypes.DEFAULT_TYPE):
     print(f'update {update} caused error {context.error}')
@@ -193,28 +197,12 @@ async def error(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 
 # Build bot with handlers
-#application = ApplicationBuilder().token(BOT_TOKEN).build()
-""" application = ApplicationBuilder().token(BOT_TOKEN).client_session(aiohttp_session).build()
 
+application = ApplicationBuilder().token(BOT_TOKEN).build()
 application.add_handler(CommandHandler("start", start_command))
 application.add_handler(MessageHandler(filters.TEXT & (~filters.COMMAND), handle_message))
 application.add_handler(CallbackQueryHandler(handle_button_press))
-application.add_error_handler(error) """
-
-async def build_bot():
-    connector = TCPConnector(limit=20)  # Increase connection pool
-    session = ClientSession(connector=connector)
-    request = AiohttpRequest(session=session)
-
-    application = ApplicationBuilder().token(BOT_TOKEN).request(request).build()
-
-    # Register handlers here inside the build
-    application.add_handler(CommandHandler("start", start_command))
-    application.add_handler(MessageHandler(filters.TEXT & (~filters.COMMAND), handle_message))
-    application.add_handler(CallbackQueryHandler(handle_button_press))
-    application.add_error_handler(error)
-
-    return application
+application.add_error_handler(error) 
 
 """ if __name__ == "__main__":
     application.run_polling() """
