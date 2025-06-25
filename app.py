@@ -397,6 +397,14 @@ def add_header(response):
         response.headers['Content-Type'] = 'application/manifest+json'
     return response
 
+# Start Telegram bot manually
+async def start_bot():
+    await application.initialize()
+    await application.start()
+    print(">>> Telegram bot application started")
+
+asyncio.get_event_loop().run_until_complete(start_bot())
+
 @app.route('/telegram', methods=['POST'])
 def telegram_webhook():
     update = request.get_json()
