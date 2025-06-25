@@ -502,13 +502,8 @@ def check_and_notify_list_completion(list_id):
             send_telegram_message(chat_id, f"✅ כל הפריטים ברשימה שלך נאספו בהצלחה! (#{list_id})")
 
 def run_flask():
-    updater.start_webhook(
-        listen='0.0.0.0',
-        port=5000,
-        url_path='telegram',
-        webhook_url='https://web-production-feec9.up.railway.app/telegram'
-    )
-    print("✅ Bot is running via webhook")
+    print("✅ Starting Flask app with PTB webhook handler")
+    app.run(host='0.0.0.0', port=5000)
     #app.run(host='0.0.0.0', port=5000)
     # port = int(os.environ.get("PORT", 5000))
     # app.run(host="0.0.0.0", port=port)
