@@ -513,7 +513,7 @@ def run_flask():
         url_path='telegram',
         webhook_url='https://web-production-feec9.up.railway.app/telegram'  # change if needed
     )
-    app.run(host='0.0.0.0', port=5000)
+    #app.run(host='0.0.0.0', port=5000)
     # port = int(os.environ.get("PORT", 5000))
     # app.run(host="0.0.0.0", port=port)
 
