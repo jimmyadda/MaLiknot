@@ -399,6 +399,9 @@ def add_header(response):
         response.headers['Content-Type'] = 'application/manifest+json'
     return response
 
+loop = asyncio.new_event_loop()
+asyncio.set_event_loop(loop)
+
 # Start Telegram bot manually
 async def start_bot():
     await application.initialize()
@@ -406,7 +409,9 @@ async def start_bot():
     #await application.updater.start()  # ← this is what you're missing
     print(">>> Telegram bot application started")
 
-asyncio.get_event_loop().run_until_complete(start_bot())
+#asyncio.get_event_loop().run_until_complete(start_bot())
+loop.run_until_complete(start_bot())
+
 
 @app.route('/telegram', methods=['POST'])
 async def telegram_webhook():
@@ -523,7 +528,7 @@ def shutdown():
         loop.run_until_complete(application.shutdown())
     except Exception as e:
         print(f"Error during shutdown: {e}")
-        
+
 """ def run_bot():
     print("Starting bot polling...")
     nest_asyncio.apply()  # Allow asyncio inside Flask
