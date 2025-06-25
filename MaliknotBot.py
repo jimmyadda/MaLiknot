@@ -4,6 +4,8 @@ import asyncio
 import threading
 from telegram import Update,InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import ApplicationBuilder,CommandHandler, MessageHandler, filters, ContextTypes,CallbackQueryHandler
+from telegram.request._httpxrequest import HTTPXRequest
+import httpx
 
 from aiohttp import ClientSession, TCPConnector
 #import requests
@@ -22,6 +24,11 @@ WEBHOOK_URL = 'https://web-production-feec9.up.railway.app/telegram'
 FLASK_API_URL = 'https://web-production-feec9.up.railway.app/api/add_list_from_telegram'
 
 
+
+transport = httpx.AsyncHTTPTransport(retries=3, limits=httpx.Limits(max_connections=25, max_keepalive_connections=25))
+client = httpx.AsyncClient(transport=transport)
+
+request = HTTPXRequest(http_client=client)
 
 #FLASK_API_URL = 'http://127.0.0.1:5000/api/add_list_from_telegram' #test
 logging.basicConfig(level=logging.INFO)
@@ -198,7 +205,7 @@ async def error(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 # Build bot with handlers
 
-application = ApplicationBuilder().token(BOT_TOKEN).build()
+application = ApplicationBuilder().token(BOT_TOKEN).request(request).build()
 application.add_handler(CommandHandler("start", start_command))
 application.add_handler(MessageHandler(filters.TEXT & (~filters.COMMAND), handle_message))
 application.add_handler(CallbackQueryHandler(handle_button_press))
