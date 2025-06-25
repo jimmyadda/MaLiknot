@@ -8,10 +8,17 @@ import requests
 from HandelDB import database_read,database_write
 from internal_logic  import add_list_from_telegram 
 
+#Pythonanywhere
 WEBHOOK_URL = 'https://maliknot1bot.pythonanywhere.com/telegram'  # or your correct route
+FLASK_API_URL = 'https://maliknot1bot.pythonanywhere.com/api/add_list_from_telegram' #PROD
 
 BOT_TOKEN = '7807618025:AAGKA3jxR2qFsA1F5yfkbaJuqJo40GW5kFs'
-FLASK_API_URL = 'https://maliknot1bot.pythonanywhere.com/api/add_list_from_telegram' #PROD
+
+
+#RailWay
+WEBHOOK_URL = 'https://web-production-feec9.up.railway.app/telegram'
+FLASK_API_URL = 'https://web-production-feec9.up.railway.app/api/add_list_from_telegram'
+
 
 #FLASK_API_URL = 'http://127.0.0.1:5000/api/add_list_from_telegram' #test
 logging.basicConfig(level=logging.INFO)
