@@ -1,10 +1,13 @@
 import logging
-import aiohttp
+
+
+from aiohttp import ClientSession, TCPConnector
 import asyncio
 import threading
 from telegram import Update,InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import ApplicationBuilder,CommandHandler, MessageHandler, filters, ContextTypes,CallbackQueryHandler
-import requests
+#import requests
+from telegram.request import Request
 from HandelDB import database_read,database_write
 from internal_logic  import add_list_from_telegram 
 
@@ -19,6 +22,11 @@ BOT_TOKEN = '7807618025:AAGKA3jxR2qFsA1F5yfkbaJuqJo40GW5kFs'
 WEBHOOK_URL = 'https://web-production-feec9.up.railway.app/telegram'
 FLASK_API_URL = 'https://web-production-feec9.up.railway.app/api/add_list_from_telegram'
 
+# Increase the pool size
+connector = TCPConnector(limit=20)  # default is 10, increase to 20
+session = ClientSession(connector=connector)
+# Create a Request object with larger pool size
+custom_request = Request(con_pool_size=20)
 
 #FLASK_API_URL = 'http://127.0.0.1:5000/api/add_list_from_telegram' #test
 logging.basicConfig(level=logging.INFO)
@@ -190,7 +198,8 @@ async def error(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 
 # Build bot with handlers
-application = ApplicationBuilder().token(BOT_TOKEN).build()
+#application = ApplicationBuilder().token(BOT_TOKEN).build()
+application = ApplicationBuilder().token(BOT_TOKEN).request(custom_request).build()
 application.add_handler(CommandHandler("start", start_command))
 application.add_handler(MessageHandler(filters.TEXT & (~filters.COMMAND), handle_message))
 application.add_handler(CallbackQueryHandler(handle_button_press))
