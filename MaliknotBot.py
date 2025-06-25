@@ -3,7 +3,7 @@ from aiohttp import ClientSession, TCPConnector
 import asyncio
 import threading
 from telegram import Update,InlineKeyboardButton, InlineKeyboardMarkup
-from telegram.ext import ApplicationBuilder,CommandHandler, MessageHandler, filters, ContextTypes,CallbackQueryHandler
+from telegram.ext import Application,ApplicationBuilder,CommandHandler, MessageHandler, filters, ContextTypes,CallbackQueryHandler
 #import requests
 from HandelDB import database_read,database_write
 from internal_logic  import add_list_from_telegram 
@@ -195,12 +195,26 @@ async def error(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 # Build bot with handlers
 #application = ApplicationBuilder().token(BOT_TOKEN).build()
-application = ApplicationBuilder().token(BOT_TOKEN).client_session(aiohttp_session).build()
+""" application = ApplicationBuilder().token(BOT_TOKEN).client_session(aiohttp_session).build()
 
 application.add_handler(CommandHandler("start", start_command))
 application.add_handler(MessageHandler(filters.TEXT & (~filters.COMMAND), handle_message))
 application.add_handler(CallbackQueryHandler(handle_button_press))
-application.add_error_handler(error)
+application.add_error_handler(error) """
+
+async def build_bot():
+    connector = TCPConnector(limit=20)
+    session = ClientSession(connector=connector)
+
+    application = Application.builder().token(BOT_TOKEN).client_session(session).build()
+
+    # Register handlers here inside the build
+    application.add_handler(CommandHandler("start", start_command))
+    application.add_handler(MessageHandler(filters.TEXT & (~filters.COMMAND), handle_message))
+    application.add_handler(CallbackQueryHandler(handle_button_press))
+    application.add_error_handler(error)
+
+    return application
 
 """ if __name__ == "__main__":
     application.run_polling() """
