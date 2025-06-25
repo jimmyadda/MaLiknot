@@ -499,11 +499,20 @@ def run_flask():
     app.run(host="0.0.0.0", port=port)
     #app.run(host="0.0.0.0", port=5000)
 
+if __name__ == "__main__":     
+    run_flask()
+
 """ def run_bot():
     print("Starting bot polling...")
     nest_asyncio.apply()  # Allow asyncio inside Flask
-    application.run_polling() """
+    application.run_polling()  #Removed for railway
 
-if __name__ == "__main__":
-    print("Starting bot and flask to railway...")
-    run_flask()
+
+     if __name__ == "__main__":
+     print("Starting Flask in background thread...")
+    flask_thread = threading.Thread(target=run_flask)
+    flask_thread.start()
+
+    print("Starting Telegram bot in main thread...")
+    run_bot()  #Removed for railway """
+
