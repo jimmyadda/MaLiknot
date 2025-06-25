@@ -401,6 +401,7 @@ def add_header(response):
 async def start_bot():
     await application.initialize()
     await application.start()
+    await application.updater.start()  # ← this is what you're missing
     print(">>> Telegram bot application started")
 
 asyncio.get_event_loop().run_until_complete(start_bot())
