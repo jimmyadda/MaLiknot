@@ -1,9 +1,11 @@
 import logging
-from aiohttp import ClientSession, TCPConnector
+
 import asyncio
 import threading
 from telegram import Update,InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import Application,ApplicationBuilder,CommandHandler, MessageHandler, filters, ContextTypes,CallbackQueryHandler
+from telegram.request import AiohttpRequest
+from aiohttp import ClientSession, TCPConnector
 #import requests
 from HandelDB import database_read,database_write
 from internal_logic  import add_list_from_telegram 
@@ -200,10 +202,11 @@ application.add_handler(CallbackQueryHandler(handle_button_press))
 application.add_error_handler(error) """
 
 async def build_bot():
-    connector = TCPConnector(limit=20)
+    connector = TCPConnector(limit=20)  # Increase connection pool
     session = ClientSession(connector=connector)
+    request = AiohttpRequest(session=session)
 
-    application = Application.builder().token(BOT_TOKEN).client_session(session).build()
+    application = ApplicationBuilder().token(BOT_TOKEN).request(request).build()
 
     # Register handlers here inside the build
     application.add_handler(CommandHandler("start", start_command))
