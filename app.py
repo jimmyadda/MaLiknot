@@ -18,7 +18,7 @@ import logging
 import hashlib
 from telegram_utils import send_telegram_message, extract_chat_id
 import nest_asyncio  # <- PATCH LOOP
-from MaliknotBot import application  # adjust if needed
+from MaliknotBot import build_bot # adjust if needed
 from internal_logic  import add_list_from_telegram # type: ignore
 from telegram import Update
 from flask import send_from_directory
@@ -396,6 +396,8 @@ def add_header(response):
     if request.path.endswith('manifest.json'):
         response.headers['Content-Type'] = 'application/manifest+json'
     return response
+
+application = asyncio.get_event_loop().run_until_complete(build_bot())
 
 # Start Telegram bot manually
 async def start_bot():
