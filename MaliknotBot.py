@@ -41,7 +41,8 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     list_id = result['list_id']
     created = result.get('created', False)
 
-    url = f"https://maliknot1bot.pythonanywhere.com/list/{list_id}"
+    #url = f"https://maliknot1bot.pythonanywhere.com/list/{list_id}"
+    url = f"https://web-production-feec9.up.railway.app/list/{list_id}"
     # Create reply
                 # Create inline keyboard with a button
     keyboard = [
@@ -194,8 +195,8 @@ application.add_handler(MessageHandler(filters.TEXT & (~filters.COMMAND), handle
 application.add_handler(CallbackQueryHandler(handle_button_press))
 application.add_error_handler(error)
 
-if __name__ == "__main__":
-    application.run_polling()
+""" if __name__ == "__main__":
+    application.run_polling() """
 
 
 
