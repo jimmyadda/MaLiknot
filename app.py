@@ -22,11 +22,7 @@ from telegram import Update
 from MaliknotBot import updater
 #from MaliknotBot import application
 from flask import send_from_directory
-import nest_asyncio
-import asyncio
 
-
-nest_asyncio.apply()
 
 app = Flask(__name__)
 app.secret_key = "dsvnjksnvjksdvnsjkvnsjvsvs"
