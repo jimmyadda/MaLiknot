@@ -19,9 +19,6 @@ BOT_TOKEN = '7807618025:AAGKA3jxR2qFsA1F5yfkbaJuqJo40GW5kFs'
 WEBHOOK_URL = 'https://web-production-feec9.up.railway.app/telegram'
 FLASK_API_URL = 'https://web-production-feec9.up.railway.app/api/add_list_from_telegram'
 
-# Increase the pool size
-connector = TCPConnector(limit=20)  # default is 10, increase to 20
-aiohttp_session = ClientSession(connector=connector)
 
 
 #FLASK_API_URL = 'http://127.0.0.1:5000/api/add_list_from_telegram' #test
