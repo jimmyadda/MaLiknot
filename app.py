@@ -5,6 +5,7 @@ import os
 import re
 import sqlite3
 import random
+import sys
 from threading import Thread
 import threading
 from flask import Flask, jsonify, send_file,flash,g,render_template,request,redirect, send_from_directory, session, url_for
@@ -516,7 +517,8 @@ def run_flask():
     # port = int(os.environ.get("PORT", 5000))
     # app.run(host="0.0.0.0", port=port)
 
-if __name__ == "__main__":     
+if __name__ == "__main__":
+    print(f"🔍 Python version on Railway: {sys.version}")    
     run_flask()
 
 
