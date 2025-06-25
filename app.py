@@ -402,15 +402,10 @@ def add_header(response):
 
 @app.route('/telegram', methods=['POST'])
 async def telegram_webhook():
-    update_data = request.get_json(force=True)
-    update = Update.de_json(update_data, updater.bot)
+    update = Update.de_json(request.get_json(force=True), updater.bot)
+    updater.dispatcher.process_update(update)
     print(">>> /telegram hit")
     print(">>> Incoming update:", update)
-
-    if update:            
-        # Let the dispatcher handle it
-        updater.dispatcher.process_update(update)
-
     return '', 200
 
 """ async def start_bot():
@@ -511,8 +506,9 @@ def run_flask():
         listen='0.0.0.0',
         port=5000,
         url_path='telegram',
-        webhook_url='https://web-production-feec9.up.railway.app/telegram'  # change if needed
+        webhook_url='https://web-production-feec9.up.railway.app/telegram'
     )
+    print("✅ Bot is running via webhook")
     #app.run(host='0.0.0.0', port=5000)
     # port = int(os.environ.get("PORT", 5000))
     # app.run(host="0.0.0.0", port=port)
