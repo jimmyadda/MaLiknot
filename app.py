@@ -399,7 +399,7 @@ def add_header(response):
         response.headers['Content-Type'] = 'application/manifest+json'
     return response
 
-""" loop = asyncio.new_event_loop()
+loop = asyncio.new_event_loop()
 asyncio.set_event_loop(loop)
 
 # Start Telegram bot manually
@@ -411,7 +411,7 @@ async def start_bot():
 
 #asyncio.get_event_loop().run_until_complete(start_bot())
 loop.run_until_complete(start_bot())
- """
+
 
 @app.route('/telegram', methods=['POST'])
 async def telegram_webhook():
@@ -422,12 +422,7 @@ async def telegram_webhook():
     if update:
         telegram_update = Update.de_json(update, application.bot)
         print(">>> dispatching to bot application")
-        async def handle():
-            await application.initialize()
-            await application.start()
-            await application.process_update(telegram_update)
-
-        asyncio.run(handle())  # 🔧 Run it cleanly in a fresh loop each time
+        await application.process_update(telegram_update)
 
     return '', 200
 
