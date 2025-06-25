@@ -16,13 +16,15 @@ import uuid
 import logging
 import hashlib
 from telegram_utils import send_telegram_message, extract_chat_id
-from MaliknotBot import updater
+from MaliknotBot import application
 from internal_logic  import add_list_from_telegram # type: ignore
 from telegram import Update
 from flask import send_from_directory
-import atexit
+import nest_asyncio
+import asyncio
 
 
+nest_asyncio.apply()
 
 app = Flask(__name__)
 app.secret_key = "dsvnjksnvjksdvnsjkvnsjvsvs"
@@ -398,16 +400,24 @@ def add_header(response):
 
 @app.route('/telegram', methods=['POST'])
 async def telegram_webhook():
-    update_json = request.get_json(force=True)
-    update = Update.de_json(update_json, updater.bot)
+    update_data = request.get_json(force=True)
+    update = Update.de_json(update_data, application.bot)
     print(">>> /telegram hit")
     print(">>> Incoming update:", update)
 
     if update:            
         # Let the dispatcher handle it
-        updater.dispatcher.process_update(update)
+        await application.process_update(update)
 
     return '', 200
+
+async def start_bot():
+    await application.initialize()
+    await application.start()
+    print("✅ Telegram bot started")
+
+loop = asyncio.get_event_loop()
+loop.run_until_complete(start_bot())
 
 @app.route('/api/add_list_from_telegram', methods=['POST'])
 def add_list_from_telegram():
@@ -495,15 +505,8 @@ def check_and_notify_list_completion(list_id):
             send_telegram_message(chat_id, f"✅ כל הפריטים ברשימה שלך נאספו בהצלחה! (#{list_id})")
 
 def run_flask():
-    updater.start_webhook(
-        listen='0.0.0.0',
-        port=5000,
-        url_path='telegram',
-        webhook_url='https://your-app-url.on.railway.app/telegram'  # Replace with Railway URL
-    )
-    print("Bot is running via webhook")
-    app.run(host='0.0.0.0', port=5000)
-    #app.run(host="0.0.0.0", port=5000)
+    port = int(os.environ.get("PORT", 5000))
+    app.run(host="0.0.0.0", port=port)
 
 if __name__ == "__main__":     
     run_flask()
