@@ -401,13 +401,13 @@ def add_header(response):
 async def start_bot():
     await application.initialize()
     await application.start()
-    await application.updater.start()  # ← this is what you're missing
+    #await application.updater.start()  # ← this is what you're missing
     print(">>> Telegram bot application started")
 
 asyncio.get_event_loop().run_until_complete(start_bot())
 
 @app.route('/telegram', methods=['POST'])
-def telegram_webhook():
+async def telegram_webhook():
     update = request.get_json()
     print(">>> /telegram hit")
     print(">>> Incoming update:", update)
@@ -416,7 +416,8 @@ def telegram_webhook():
         telegram_update = Update.de_json(update, application.bot)
         print(">>> dispatching to bot application")
         print(application.handlers)  # Print registered handlers
-        application.update_queue.put_nowait(telegram_update)
+        await application.process_update(telegram_update)
+        #application.update_queue.put_nowait(telegram_update)
 
     return '', 200
 
