@@ -18,7 +18,7 @@ import logging
 import hashlib
 from telegram_utils import send_telegram_message, extract_chat_id
 import nest_asyncio  # <- PATCH LOOP
-from MaliknotBot import build_bot # adjust if needed
+from MaliknotBot import application
 from internal_logic  import add_list_from_telegram # type: ignore
 from telegram import Update
 from flask import send_from_directory
@@ -397,8 +397,6 @@ def add_header(response):
         response.headers['Content-Type'] = 'application/manifest+json'
     return response
 
-application = asyncio.get_event_loop().run_until_complete(build_bot())
-
 # Start Telegram bot manually
 async def start_bot():
     await application.initialize()
@@ -419,7 +417,6 @@ async def telegram_webhook():
         print(">>> dispatching to bot application")
         print(application.handlers)  # Print registered handlers
         await application.process_update(telegram_update)
-        #application.update_queue.put_nowait(telegram_update)
 
     return '', 200
 
