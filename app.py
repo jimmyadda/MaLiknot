@@ -1,18 +1,11 @@
-from flask import Flask, request
-import sys
+from flask import Flask
 
 app = Flask(__name__)
 
 @app.route('/')
-def home():
-    return "✅ Flask app is running!"
-
-@app.route('/telegram', methods=['POST'])
-def telegram_webhook():
-    print(">>> /telegram hit")
-    print(">>> Incoming update:", request.get_json(force=True))
-    return '', 200
+def index():
+    return "✅ Minimal Flask app running"
 
 if __name__ == '__main__':
-    print(f"🔍 Python version on Railway: {sys.version}")
+    print("👀 Starting minimal app")
     app.run(host='0.0.0.0', port=5000)
