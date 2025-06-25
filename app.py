@@ -397,7 +397,7 @@ def add_header(response):
 
 
 @app.route('/telegram', methods=['POST'])
-async def telegram_webhook():
+def telegram_webhook():
     update = Update.de_json(request.get_json(force=True), updater.bot)
     updater.dispatcher.process_update(update)
     print(">>> /telegram hit")
