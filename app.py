@@ -1,7 +1,3 @@
-import nest_asyncio
-nest_asyncio.apply()
-
-import asyncio
 import csv
 from datetime import datetime
 import io
@@ -20,7 +16,7 @@ import uuid
 import logging
 import hashlib
 from telegram_utils import send_telegram_message, extract_chat_id
-from MaliknotBot import application
+from MaliknotBot import updater
 from internal_logic  import add_list_from_telegram # type: ignore
 from telegram import Update
 from flask import send_from_directory
@@ -399,30 +395,17 @@ def add_header(response):
         response.headers['Content-Type'] = 'application/manifest+json'
     return response
 
-loop = asyncio.new_event_loop()
-asyncio.set_event_loop(loop)
-
-# Start Telegram bot manually
-async def start_bot():
-    await application.initialize()
-    await application.start()
-    #await application.updater.start()  # ← this is what you're missing
-    print(">>> Telegram bot application started")
-
-#asyncio.get_event_loop().run_until_complete(start_bot())
-loop.run_until_complete(start_bot())
-
 
 @app.route('/telegram', methods=['POST'])
 async def telegram_webhook():
-    update = request.get_json()
+    update_json = request.get_json(force=True)
+    update = Update.de_json(update_json, updater.bot)
     print(">>> /telegram hit")
     print(">>> Incoming update:", update)
 
-    if update:
-        telegram_update = Update.de_json(update, application.bot)
-        print(">>> dispatching to bot application")
-        await application.process_update(telegram_update)
+    if update:            
+        # Let the dispatcher handle it
+        updater.dispatcher.process_update(update)
 
     return '', 200
 
@@ -512,21 +495,19 @@ def check_and_notify_list_completion(list_id):
             send_telegram_message(chat_id, f"✅ כל הפריטים ברשימה שלך נאספו בהצלחה! (#{list_id})")
 
 def run_flask():
-    port = int(os.environ.get("PORT", 5000))
-    app.run(host="0.0.0.0", port=port)
+    updater.start_webhook(
+        listen='0.0.0.0',
+        port=5000,
+        url_path='telegram',
+        webhook_url='https://your-app-url.on.railway.app/telegram'  # Replace with Railway URL
+    )
+    print("Bot is running via webhook")
+    app.run(host='0.0.0.0', port=5000)
     #app.run(host="0.0.0.0", port=5000)
 
 if __name__ == "__main__":     
     run_flask()
 
-
-@atexit.register
-def shutdown():
-    try:
-        loop = asyncio.get_event_loop()
-        loop.run_until_complete(application.shutdown())
-    except Exception as e:
-        print(f"Error during shutdown: {e}")
 
 """ def run_bot():
     print("Starting bot polling...")
