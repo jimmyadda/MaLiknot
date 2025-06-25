@@ -1,8 +1,8 @@
 import logging
-from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
+from telegram import InlineKeyboardButton, InlineKeyboardMarkup, Update
 from telegram.ext import (
-    ApplicationBuilder, CommandHandler, MessageHandler, CallbackQueryHandler,
-    ContextTypes, filters
+    Updater, CommandHandler, MessageHandler, CallbackQueryHandler,
+    Filters, CallbackContext
 )
 import threading
 from telegram import Update,InlineKeyboardButton, InlineKeyboardMarkup
@@ -26,10 +26,11 @@ FLASK_API_URL = 'https://web-production-feec9.up.railway.app/api/add_list_from_t
 
 #FLASK_API_URL = 'http://127.0.0.1:5000/api/add_list_from_telegram' #test
 logging.basicConfig(level=logging.INFO)
-
+updater = Updater(token=BOT_TOKEN, use_context=True)
+dispatcher = updater.dispatcher
 #commands
 # Message handler
-async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
+def handle_message(update: Update, context: CallbackContext):
     chat_id = update.effective_chat.id
     text = update.message.text
     print(f'user ({chat_id}) sent: "{text}"')
@@ -58,14 +59,14 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 ]           
     reply_markup = InlineKeyboardMarkup(keyboard)
     if created:
-       await update.message.reply_text(
+        update.message.reply_text(
                     f"✅ רשימה חדשה נוצרה! {list_id}\n📋 לצפייה ברשימה: {url}\n🔗 ניתן לשתף קישור זה",
                     reply_markup=reply_markup
                 )
 
         
     else:
-      await update.message.reply_text(
+       update.message.reply_text(
                     f"✅ הפריטים התווספו לרשימה {list_id}!\n📋 לצפייה ברשימה: {url}\n🔗 ניתן לשתף קישור זה",
                     reply_markup=reply_markup
                 )
@@ -108,7 +109,7 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 await update.message.reply_text("❌ אירעה שגיאה. נסה שוב.") """
 
 #buttons
-async def handle_button_press(update: Update, context: ContextTypes.DEFAULT_TYPE):
+def handle_button_press(update: Update, context: CallbackContext):
     query = update.callback_query
     query.answer()  # ✅ Always respond to Telegram or the button will appear stuck
     data = query.data
@@ -127,7 +128,7 @@ async def handle_button_press(update: Update, context: ContextTypes.DEFAULT_TYPE
         """, (list_id,))
          
         if not items:
-            await context.bot.send_message(chat_id=query.message.chat_id, text="❌ הרשימה ריקה או לא קיימת.")
+            context.bot.send_message(chat_id=query.message.chat_id, text="❌ הרשימה ריקה או לא קיימת.")
             return
 
         message = f"📋 רשימת קניות #{list_id}:\n"
@@ -141,20 +142,20 @@ async def handle_button_press(update: Update, context: ContextTypes.DEFAULT_TYPE
             if note:
                 line += f" - {note}"
             message += line + "\n"
-        await context.bot.send_message(chat_id=query.message.chat_id, text=message)
+        context.bot.send_message(chat_id=query.message.chat_id, text=message)
 
     elif data.startswith("deletelist:"):
         list_id = int(data.split(":")[1])
         database_write("DELETE FROM product_in_list WHERE list_id = ?", (list_id,))
         database_write("DELETE FROM lists WHERE id = ?", (list_id,))
-        await context.bot.send_message(chat_id=query.message.chat_id, text=f"🗑 הרשימה {list_id} נמחקה.")
+        context.bot.send_message(chat_id=query.message.chat_id, text=f"🗑 הרשימה {list_id} נמחקה.")
 
     elif data.startswith("duplicatelist:"):
         original_id = int(data.split(":")[1])
         # Get original list
         original = database_read("SELECT name FROM lists WHERE id = ?", (original_id,))
         if not original:
-            await context.bot.send_message(chat_id=query.message.chat_id, text="❌ הרשימה לא נמצאה.")
+            context.bot.send_message(chat_id=query.message.chat_id, text="❌ הרשימה לא נמצאה.")
             return
 
         new_name = original[0]['name'] + " (העתק)"
@@ -178,33 +179,36 @@ async def handle_button_press(update: Update, context: ContextTypes.DEFAULT_TYPE
                ]           
         reply_markup = InlineKeyboardMarkup(keyboard)
 
-        await context.bot.send_message(
+        context.bot.send_message(
             chat_id=query.message.chat_id,
             text=f"🔁 הרשימה שוכפלה. מזהה חדש: {new_id}",
             reply_markup=reply_markup
         )
 
 # START command
-async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    print(">>> inside start_command handler")
-    await update.message.reply_text(".שלום, אנא שילחו רשימת קניות מופרדת בפסיקים")
-    await update.message.reply_text("פורמט: product [quantity] [note]")
-    await update.message.reply_text(" python anywhere לדוגמא: חלב 2, תפוח 5 ירוק, לחם 1 פרוס")
+def start_command(update: Update, context: CallbackContext):
+     print(">>> inside start_command handler")
+     update.message.reply_text(".שלום, אנא שילחו רשימת קניות מופרדת בפסיקים")
+     update.message.reply_text("פורמט: product [quantity] [note]")
+     update.message.reply_text(" python anywhere לדוגמא: חלב 2, תפוח 5 ירוק, לחם 1 פרוס")
 
 
-async def error(update: Update, context: ContextTypes.DEFAULT_TYPE):
+def error(update: Update, context: CallbackContext):
     print(f'update {update} caused error {context.error}')
 
 
 
 # Build bot with handlers
 
+dispatcher.add_handler(CommandHandler("start", start_command))
+dispatcher.add_handler(MessageHandler(Filters.text & ~Filters.command, handle_message))
+dispatcher.add_handler(CallbackQueryHandler(handle_button_press))
 
-application = ApplicationBuilder().token(BOT_TOKEN).build()
+""" application = ApplicationBuilder().token(BOT_TOKEN).build()
 application.add_handler(CommandHandler("start", start_command))
 application.add_handler(MessageHandler(filters.TEXT & (~filters.COMMAND), handle_message))
 application.add_handler(CallbackQueryHandler(handle_button_press)) 
-application.add_error_handler(error) 
+application.add_error_handler(error)  """
 
 """ if __name__ == "__main__":
     application.run_polling() """
