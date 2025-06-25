@@ -1,3 +1,6 @@
+import nest_asyncio
+nest_asyncio.apply()
+
 import asyncio
 import csv
 from datetime import datetime
@@ -17,12 +20,11 @@ import uuid
 import logging
 import hashlib
 from telegram_utils import send_telegram_message, extract_chat_id
-import nest_asyncio  # <- PATCH LOOP
 from MaliknotBot import application
 from internal_logic  import add_list_from_telegram # type: ignore
 from telegram import Update
 from flask import send_from_directory
-
+import atexit
 
 
 
@@ -513,6 +515,15 @@ def run_flask():
 if __name__ == "__main__":     
     run_flask()
 
+
+@atexit.register
+def shutdown():
+    try:
+        loop = asyncio.get_event_loop()
+        loop.run_until_complete(application.shutdown())
+    except Exception as e:
+        print(f"Error during shutdown: {e}")
+        
 """ def run_bot():
     print("Starting bot polling...")
     nest_asyncio.apply()  # Allow asyncio inside Flask
