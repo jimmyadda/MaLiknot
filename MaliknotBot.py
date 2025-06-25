@@ -1,8 +1,3 @@
-import logging
-
-import asyncio
-import threading
-from telegram.request._httpxrequest import HTTPXRequest
 import httpx
 # Increase global pool size for httpx before PTB builds its client
 httpx._config.DEFAULT_LIMITS = httpx.Limits(
@@ -10,10 +5,13 @@ httpx._config.DEFAULT_LIMITS = httpx.Limits(
     max_keepalive_connections=25
 )
 
+import logging
+
+import asyncio
+import threading
 from telegram import Update,InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import ApplicationBuilder,CommandHandler, MessageHandler, filters, ContextTypes,CallbackQueryHandler
 
-from aiohttp import ClientSession, TCPConnector
 #import requests
 from HandelDB import database_read,database_write
 from internal_logic  import add_list_from_telegram 
