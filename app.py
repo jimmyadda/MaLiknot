@@ -495,17 +495,15 @@ def check_and_notify_list_completion(list_id):
             send_telegram_message(chat_id, f"✅ כל הפריטים ברשימה שלך נאספו בהצלחה! (#{list_id})")
 
 def run_flask():
-    app.run(host="0.0.0.0", port=5000)
+    port = int(os.environ.get("PORT", 5000))
+    app.run(host="0.0.0.0", port=port)
+    #app.run(host="0.0.0.0", port=5000)
 
-def run_bot():
+""" def run_bot():
     print("Starting bot polling...")
     nest_asyncio.apply()  # Allow asyncio inside Flask
-    application.run_polling()
+    application.run_polling() """
 
 if __name__ == "__main__":
-    print("Starting Flask in background thread...")
-    flask_thread = threading.Thread(target=run_flask)
-    flask_thread.start()
-
-    print("Starting Telegram bot in main thread...")
-    run_bot()
+    print("Starting bot and flask to railway...")
+    run_flask()
