@@ -7,7 +7,7 @@ from telegram.ext import (
 )
 
 BOT_TOKEN = '7807618025:AAGKA3jxR2qFsA1F5yfkbaJuqJo40GW5kFs'
-FLASK_API_URL = 'https://web-production-feec9.up.railway.app/api'
+FLASK_API_URL = 'https://maliknot.up.railway.app.up.railway.app/api'
 
 logging.basicConfig(level=logging.INFO)
 
