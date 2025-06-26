@@ -16,9 +16,7 @@ import uuid
 import logging
 import hashlib
 from telegram_utils import send_telegram_message, extract_chat_id
-from MaliknotBot import application
 from internal_logic  import add_list_from_telegram # type: ignore
-from telegram import Update
 from flask import send_from_directory
 import nest_asyncio
 import asyncio
@@ -397,28 +395,7 @@ def add_header(response):
         response.headers['Content-Type'] = 'application/manifest+json'
     return response
 
-
-@app.route('/telegram', methods=['POST'])
-async def telegram_webhook():
-    update_data = request.get_json(force=True)
-    update = Update.de_json(update_data, application.bot)
-    print(">>> /telegram hit")
-    print(">>> Incoming update:", update)
-
-    if update:            
-        # Let the dispatcher handle it
-        await application.process_update(update)
-
-    return '', 200
-
-async def start_bot():
-    await application.initialize()
-    await application.start()
-    print("✅ Telegram bot started")
-
-loop = asyncio.get_event_loop()
-loop.run_until_complete(start_bot())
-
+#Region Telegrambot Api
 @app.route('/api/add_list_from_telegram', methods=['POST'])
 def add_list_from_telegram():
     data = request.get_json()
@@ -485,6 +462,44 @@ def add_list_from_telegram():
 
     return jsonify({"status": "success", "list_id": list_id})
 
+@app.route("/api/get_list/<int:list_id>", methods=["GET"])
+def get_list(list_id):
+    items = database_read("""
+        SELECT p.name, pl.quantity, pl.notes, pl.collected
+        FROM product_in_list pl
+        JOIN products p ON p.id = pl.product_id
+        WHERE pl.list_id = ?
+    """, (list_id,))
+    return jsonify({"items": items})
+
+@app.route("/api/delete_list/<int:list_id>", methods=["DELETE"])
+def delete_list(list_id):
+    database_write("DELETE FROM product_in_list WHERE list_id = ?", (list_id,))
+    database_write("DELETE FROM lists WHERE id = ?", (list_id,))
+    return jsonify({"success": True})
+
+@app.route("/api/duplicate_list/<int:list_id>", methods=["POST"])
+def duplicate_list(list_id):
+    original = database_read("SELECT name FROM lists WHERE id = ?", (list_id,))
+    if not original:
+        return jsonify({"error": "Not found"}), 404
+
+    new_name = original[0]['name'] + " (העתק)"
+    database_write("INSERT INTO lists (name) VALUES (?)", (new_name,))
+    new_id = database_read("SELECT max(id) as id FROM lists")[0]['id']
+
+    items = database_read("SELECT product_id, quantity, notes FROM product_in_list WHERE list_id = ?", (list_id,))
+    for item in items:
+        database_write(
+            "INSERT INTO product_in_list (list_id, product_id, quantity, collected, notes) VALUES (?, ?, ?, 0, ?)",
+            (new_id, item['product_id'], item['quantity'], item['notes'])
+        )
+    return jsonify({"new_id": new_id})
+
+#EndRegion
+
+
+
 def check_and_notify_list_completion(list_id):
     list_info = database_read("SELECT name FROM lists WHERE id = ?", (list_id,))
     if not list_info:
@@ -512,17 +527,4 @@ if __name__ == "__main__":
     run_flask()
 
 
-""" def run_bot():
-    print("Starting bot polling...")
-    nest_asyncio.apply()  # Allow asyncio inside Flask
-    application.run_polling()  #Removed for railway
-
-
-     if __name__ == "__main__":
-     print("Starting Flask in background thread...")
-    flask_thread = threading.Thread(target=run_flask)
-    flask_thread.start()
-
-    print("Starting Telegram bot in main thread...")
-    run_bot()  #Removed for railway """
 
