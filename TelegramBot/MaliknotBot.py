@@ -7,7 +7,7 @@ from telegram.ext import (
 )
 
 BOT_TOKEN = '7807618025:AAGKA3jxR2qFsA1F5yfkbaJuqJo40GW5kFs'
-FLASK_API_URL = 'https://maliknot.up.railway.app.up.railway.app/api'
+FLASK_API_URL = 'https://maliknot.up.railway.app/api'
 
 logging.basicConfig(level=logging.INFO)
 
@@ -32,7 +32,7 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     list_id = data['list_id']
     created = data.get('created', False)
-    url = f"https://web-production-feec9.up.railway.app/list/{list_id}"
+    url = f"https://maliknot.up.railway.app/list/{list_id}"
 
     keyboard = [[
         InlineKeyboardButton("📋 הצג את הרשימה", callback_data=f"showlist:{list_id}"),
