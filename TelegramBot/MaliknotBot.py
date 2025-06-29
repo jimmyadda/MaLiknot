@@ -1,15 +1,19 @@
 import logging
+from dotenv import load_dotenv
 import requests
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import (
     ApplicationBuilder, CommandHandler, MessageHandler, CallbackQueryHandler,
     ContextTypes, filters
 )
+import os
 
-BOT_TOKEN = '7807618025:AAGKA3jxR2qFsA1F5yfkbaJuqJo40GW5kFs'
-FLASK_API_URL = 'https://maliknot.up.railway.app/api'
 
 logging.basicConfig(level=logging.INFO)
+load_dotenv()
+
+BOT_TOKEN = os.getenv("BOT_TOKEN")
+FLASK_API_URL = os.getenv("FLASK_API_URL")
 
 async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text(
