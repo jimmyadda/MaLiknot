@@ -13,6 +13,8 @@ import os
 logging.basicConfig(level=logging.INFO)
 load_dotenv()
 
+
+
 BOT_TOKEN = os.getenv("BOT_TOKEN")
 FLASK_API_URL = os.getenv("FLASK_API_URL")
 
