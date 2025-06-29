@@ -1,15 +1,22 @@
 import logging
+from dotenv import load_dotenv
 import requests
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import (
     ApplicationBuilder, CommandHandler, MessageHandler, CallbackQueryHandler,
     ContextTypes, filters
 )
+import os
 
-BOT_TOKEN = '7807618025:AAGKA3jxR2qFsA1F5yfkbaJuqJo40GW5kFs'
-FLASK_API_URL = 'https://maliknot.up.railway.app/api'
+
 
 logging.basicConfig(level=logging.INFO)
+load_dotenv()
+
+
+
+BOT_TOKEN = os.getenv("BOT_TOKEN")
+FLASK_API_URL = os.getenv("FLASK_API_URL")
 
 async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text(
@@ -56,7 +63,7 @@ async def handle_button_press(update: Update, context: ContextTypes.DEFAULT_TYPE
     query = update.callback_query
     await query.answer()
     data = query.data
-
+    
     if data.startswith("showlist:"):
         list_id = int(data.split(":")[1])
         response = requests.get(f"{FLASK_API_URL}/get_list/{list_id}")
@@ -90,7 +97,7 @@ async def handle_button_press(update: Update, context: ContextTypes.DEFAULT_TYPE
         response = requests.post(f"{FLASK_API_URL}/duplicate_list/{original_id}")
         data = response.json()
         new_id = data['new_id']
-
+        url = f"https://maliknot.up.railway.app/list/{new_id}"
         keyboard = [[
             InlineKeyboardButton("📋 הצג את הרשימה", callback_data=f"showlist:{new_id}"),
             InlineKeyboardButton("🗑 מחק", callback_data=f"deletelist:{new_id}"),
@@ -100,7 +107,7 @@ async def handle_button_press(update: Update, context: ContextTypes.DEFAULT_TYPE
 
         await context.bot.send_message(
             chat_id=query.message.chat_id,
-            text=f"🔁 הרשימה שוכפלה. מזהה חדש: {new_id}",
+            text=f"🔁 הרשימה שוכפלה. מזהה חדש: {new_id} \n📋 לצפייה ברשימה: {url} ",
             reply_markup=reply_markup
         )
 
