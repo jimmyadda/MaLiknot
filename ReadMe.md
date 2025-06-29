@@ -70,3 +70,6 @@ All lists are saved to the web app and synced across both interfaces.
         Password: pass
 
     Or send a list to: @Maliknot_bot
+
+                                                                                                                                                                                [בעברית](WebApp/ReadMe_Heb.txt)
+                           
