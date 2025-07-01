@@ -37,15 +37,14 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     # אם יש לפחות שתי שורות – השורה הראשונה היא שם הרשימה
     if len(lines) >= 2:
         first_line = lines[0].strip()
-        # הסרת סוגריים אם קיימים
         if first_line.startswith("[") and first_line.endswith("]"):
-            list_name = first_line[1:-1].strip()
+            name_part = first_line[1:-1].strip()
         else:
-            list_name = first_line
+            name_part = first_line
+        list_name = f"[{chat_id}] {name_part}"
         items_text = "\n".join(lines[1:]).strip()
     else:
-        # ברירת מחדל: השתמש ב-chat_id
-        list_name = f"List from {chat_id}"
+        list_name = f"[{chat_id}] Telegram List"
         items_text = update.message.text.strip()
 
     payload = {
