@@ -90,7 +90,16 @@ def create_db():
     
     
     #cursor.execute("ALTER TABLE lists ADD COLUMN archived INTEGER DEFAULT 0;")
-     #Create Default user
+
+    conn.commit()
+    conn.close()
+    print("Database created successfully!")
+
+
+
+if __name__ == "__main__":
+    create_db()
+    #Create Default user
     exists = database_read("SELECT * FROM accounts WHERE userid = 'admin'")
     if not exists:
         create_account({
@@ -100,11 +109,3 @@ def create_db():
             "password": "pass"
         })
         
-    conn.commit()
-    conn.close()
-    print("Database created successfully!")
-
-
-
-if __name__ == "__main__":
-    create_db()
