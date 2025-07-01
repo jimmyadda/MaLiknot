@@ -3,9 +3,21 @@ import os
 from HandelDB import create_account, database_read
 from config import DATABASE_PATH as db_name
 
-def create_db():    
+def create_db(): 
+
     if os.path.exists(db_name):
         print("Database already exists!")
+        #Create Default user
+        exists = database_read("SELECT * FROM accounts WHERE userid = 'admin'")
+        print(exists)
+        if not exists:
+                print("creating user")
+                create_account({
+                    "userid": "admin",
+                    "email": "admin@example.com",
+                    "name": "Admin",
+                    "password": "pass"
+                })
         return
 
     conn = sqlite3.connect(db_name)
@@ -92,6 +104,17 @@ def create_db():
     #cursor.execute("ALTER TABLE lists ADD COLUMN archived INTEGER DEFAULT 0;")
 
     conn.commit()
+
+    #Create Default user
+    exists = database_read("SELECT * FROM accounts WHERE userid = 'admin'")
+    if not exists:
+                print("creating default user")
+                create_account({
+                    "userid": "admin",
+                    "email": "admin@example.com",
+                    "name": "Admin",
+                    "password": "pass"
+                })
     conn.close()
     print("Database created successfully!")
 
@@ -99,13 +122,5 @@ def create_db():
 
 if __name__ == "__main__":
     create_db()
-    #Create Default user
-    exists = database_read("SELECT * FROM accounts WHERE userid = 'admin'")
-    if not exists:
-        create_account({
-            "userid": "admin",
-            "email": "admin@example.com",
-            "name": "Admin",
-            "password": "pass"
-        })
+
         
