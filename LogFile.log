@@ -325,3 +325,5 @@ jinja2.exceptions.UndefinedError: 'dict object' has no attribute 'category'
 {'userid': 'admin', 'email': 'maliknot@gmail.com', 'name': 'admin'}Has Logged in
 {'userid': 'admin', 'email': 'maliknot@gmail.com', 'name': 'admin'}Has Logged in
 {'userid': 'admin', 'email': 'maliknot@gmail.com', 'name': 'admin'}Has Logged in
+{'userid': 'admin', 'email': 'maliknot@gmail.com', 'name': 'admin'}Has Logged in
+{'userid': 'admin', 'email': 'maliknot@gmail.com', 'name': 'admin'}Has Logged in
