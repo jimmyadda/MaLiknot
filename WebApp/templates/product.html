@@ -7,7 +7,7 @@
                             <h5 class="-header">{{product.name}}</h5>
                             <div class="-body"></div>
                             <p class="-title">{{product['unit']}}</p>                            
-                            $ {{product['price']}}
+                            &#8362; {{ product['price'] or "0.00" }}
                               <br>
                             <a href="{{ url_for('index') }}" class="btn btn-primary">Home</a>
                         </div>

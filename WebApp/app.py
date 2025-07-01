@@ -208,21 +208,25 @@ def addproduct():
 @app.route('/product/<int:product_id>/edit', methods=['GET', 'POST'])
 def edit_product(product_id):
     product = database_read(f"select p.*,cat.name as catName from products p left JOIN categories  cat on category_id = cat.id where p.id ='{product_id}';")
+    
+    category =  database_read(f"select * from categories order by name;")    
     if request.method == 'POST':
         form = dict(request.values)
         form['id'] = request.form['id']
         form['name'] = request.form['name']
         form['price'] = request.form['price']
         form['unit'] = request.form['unit']
-        sql = "UPDATE products SET name =:name, price =:price, unit =:unit where id =:id"
+        form['category'] = request.form['category']
+        sql = "UPDATE products SET name =:name, price =:price,category_id =:category, unit =:unit where id =:id"
         ok = database_write(sql,form)
         if ok == 1:            
             flash(f"Product Saved!", "success")
             message = 'Product saved successfully'
             product = database_read(f"select p.*,cat.name as catName from products p left JOIN categories  cat on category_id = cat.id where p.id ='{request.form['id']}';")
-            return render_template('index.html',messages=message) 
+            data = database_read(f"select p.*,cat.name as catName from products p left JOIN categories cat on category_id = cat.id")
+            return render_template('index.html', all_items=data,categories=category,messages=message) 
     else:
-        return render_template('edit_product.html', products=product)
+        return render_template('edit_product.html', products=product,categories=category)
 
 @app.route('/delete_Product/<int:product_id>', methods=['DELETE', 'POST'])
 @flask_login.login_required
