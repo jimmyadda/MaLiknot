@@ -41,7 +41,6 @@ def database_read(sql,data=None):
     return rows
 
 def create_account(userpassed):
-    print(userpassed)
     userid = userpassed['userid'] #input("userid: ")
     email = userpassed['email'] #input("email: ")
     name = userpassed['name'] #input("name: ")
