@@ -1,38 +1,59 @@
 {% extends 'base.html' %}
 
 {% block content %}
-<div class="container">
+<div class="container mt-4" style="max-width: 500px;">
+    <h3 class="mb-3 text-center">ערוך מוצר</h3>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        {% for category, message in messages %}
+          <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+            {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+          </div>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
+
+    
     {% for product in products%} 
-                    <div class="card mb-3" >
-                        <div class="row g-0">
-                        <div class="col-md-4">                           
-                        </div>
-                        <div class="col-md-8">
-                            <div class="card-body">
-                        <center>
-                            <h1>Edit Product</h1>
-                            <form method="POST">
-                                <input style="display: none;" type="text" id="id" name="id" value="{{ product.id }}" required><br>
-                                <label for="name">Name:</label>
-                                <input type="text" id="name" name="name" value="{{ product.name }}" required><br>
-                                
-                                <label for="price">Price:</label>
-                                <input type="number" id="price" name="price" value="{{ product.price }}" required><br>
-                                
-                                <label for="unit">unit:</label>
-                                <textarea id="unit" name="unit" required>{{ product.unit }}</textarea><br>
-                                
-                                <button type="submit" class="btn btn-primary" >Update Product</button>
-                            </form>
-                            <a href="{{ url_for('index') }}" class="btn btn-secondary">Home</a>
-                        </center>
+    <form  method="POST">
+      <div class="mb-3">
+       <input type="hidden" id="id" name="id" value="{{ product.id }}" required>
+      </div>
 
-                            </div>
-                        </div>
-                        </div>
-                    </div>
-    {% endfor%}
+      <div class="mb-3">
+        <label for="name" class="form-label">שם המוצר</label>
+        <input type="text" class="form-control" id="name" name="name" value="{{ product.name }}" required>
+      </div>
 
+<div class="mb-3">
+  <label for="category" class="form-label">קטגוריה</label>
+  <select class="form-select" id="category" name="category" required>
+    <option value="">בחר קטגוריה</option>
+    {% for cat in categories %}
+             <option value="{{ cat.id }}" {% if cat.id == product.category_id|int %}selected{% endif %}>{{ cat.name }}</option>
+    {% endfor %}
+  </select>
 </div>
 
-{% endblock %}
+      <div class="mb-3">
+        <label for="price" class="form-label">מחיר</label>
+        <input type="number" step="0.01" class="form-control" id="price" name="price" value="{{ product.price if product.price is not none else '0.00'  }}">
+      </div>
+
+      <div class="mb-3">
+        <label for="unit" class="form-label">יחידת מדידה</label>
+        <input type="text" class="form-control" id="unit" name="unit" value="{{ product.unit }}">
+      </div>
+
+      <button type="submit" class="btn btn-success w-100">שמור מוצר</button>
+    </form>
+{% endfor %}
+    <div class="text-center mt-3">
+      <a href="{{ url_for('index') }}" class="btn btn-link">חזור לדף הבית</a>
+    </div>
+  </div>
+
+
+  {% endblock %}
