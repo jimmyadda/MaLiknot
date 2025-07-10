@@ -10,6 +10,7 @@ def add_list_from_telegram(data):
     # DO NOT CONVERT to JSON here. Data is already a dictionary!
     list_name = data.get('list_name', 'Telegram List')
     items_text = data.get('items', '')
+    chat_id = str(data.get('chat_id'))
 
     if not items_text:
         return {"error": "No items provided", "status": "error"}
@@ -56,7 +57,7 @@ def add_list_from_telegram(data):
             print("Found archived list, renaming it...")
             database_write("UPDATE lists SET name = name || '-archived' WHERE id = ?", (archived_list[0]['id'],))
         else:
-            database_write("INSERT INTO lists (name) VALUES (?)", (list_name,))
+            database_write("INSERT INTO lists (name,chat_id) VALUES (?,?)", (list_name,chat_id))
             list_id = database_read("SELECT max(id) as id FROM lists")[0]['id']
             created = True
 
