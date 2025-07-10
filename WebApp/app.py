@@ -531,26 +531,39 @@ def duplicate_list(list_id):
 @app.route('/save_expense', methods=['POST'])
 def save_expense():
     data = request.get_json()
-    chat_id = str(data.get('chat_id'))
-    amount = float(data.get('amount'))
-    list_id = int(data.get('list_id')) 
+    print(">>> /save_expense called with:", data)
 
-    chat_id = database_read("SELECT chat_id FROM lists WHERE id = ?", (list_id,))[0]["chat_id"]
+    try:
+        amount = float(data.get('amount'))
+        list_id = int(data.get('list_id'))
+    except Exception as e:
+        print("❌ Invalid input:", e)
+        return jsonify({'status': 'error', 'message': 'Invalid input'}), 400
 
-    result = database_read("""
-        SELECT id FROM lists WHERE chat_id = ? AND archived = 1 AND id = ?
-    """, (chat_id, list_id))
+    list_row = database_read("SELECT chat_id, archived FROM lists WHERE id = ?", (list_id,))
+    if not list_row:
+        print("❌ List not found")
+        return jsonify({'status': 'error', 'message': 'List not found'}), 404
 
-    if not result:
-        return jsonify({'status': 'error', 'message': 'No archived list found'}), 404
+    if list_row[0]['archived'] != 1:
+        print("❌ List not archived")
+        return jsonify({'status': 'error', 'message': 'List is not archived yet'}), 400
 
-    database_write("""
+    chat_id = list_row[0]['chat_id']
+
+    # Check if purchase already exists
+    existing = database_read("SELECT 1 FROM purchases WHERE list_id = ?", (list_id,))
+    if existing:
+        print("⚠️ Purchase already exists for this list")
+        return jsonify({'status': 'error', 'message': 'Already saved'}), 200
+
+    ok = database_write("""
         INSERT INTO purchases (chat_id, list_id, total_amount)
         VALUES (?, ?, ?)
     """, (chat_id, list_id, amount))
 
+    print("✅ Purchase saved:", ok)
     return jsonify({'status': 'success', 'list_id': list_id})
-
 
 #EndRegion
 
