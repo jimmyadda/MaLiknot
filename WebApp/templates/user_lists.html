@@ -2,49 +2,51 @@
 <html lang="he">
 <head>
     <meta charset="UTF-8">
-    <title>הרשימות שלי</title>
+    <title>היסטוריית רשימות</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <style>
         body {
-            font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
-            background: #f8f9fa;
             direction: rtl;
+            font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f8f9fa;
             margin: 0;
-            padding: 0;
+            padding: 1rem;
         }
 
         .container {
-            max-width: 800px;
+            max-width: 850px;
             margin: auto;
-            padding: 1rem;
+            background: #fff;
+            padding: 1.5rem;
+            border-radius: 8px;
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.05);
         }
 
         h2 {
             text-align: center;
             color: #343a40;
+            margin-bottom: 1rem;
         }
 
         input[type="text"] {
             width: 100%;
             padding: 0.75rem;
-            margin: 1rem 0;
+            font-size: 1rem;
+            margin-bottom: 1rem;
             border: 1px solid #ccc;
             border-radius: 6px;
-            font-size: 1rem;
             box-sizing: border-box;
         }
 
         table {
             width: 100%;
             border-collapse: collapse;
-            background: white;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.05);
         }
 
         th, td {
             padding: 12px;
             text-align: center;
-            border-bottom: 1px solid #eee;
+            border-bottom: 1px solid #ddd;
         }
 
         th {
@@ -52,7 +54,7 @@
             color: white;
         }
 
-        tr:last-child td {
+        tr.total-row {
             font-weight: bold;
             background-color: #f1f1f1;
         }
@@ -68,23 +70,23 @@
 
             tr {
                 margin-bottom: 1rem;
+                background: #fff;
+                border-radius: 6px;
+                box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
                 padding: 1rem;
-                background: white;
-                border-radius: 8px;
-                box-shadow: 0 0 5px rgba(0, 0, 0, 0.05);
             }
 
             td {
                 text-align: right;
-                padding: 10px 16px;
+                padding: 10px;
             }
 
             td::before {
                 content: attr(data-label);
-                display: block;
                 font-weight: bold;
-                color: #555;
+                display: block;
                 margin-bottom: 5px;
+                color: #333;
             }
         }
     </style>
@@ -92,7 +94,8 @@
 <body>
     <div class="container">
         <h2>📋 היסטוריית רשימות</h2>
-        <input type="text" id="searchInput" placeholder="🔍 חפש לפי שם, סכום או מספר רשימה...">
+
+        <input type="text" id="searchInput" placeholder="🔍 חפש לפי מספר, שם או סכום...">
 
         <table id="listsTable">
             <thead>
@@ -118,9 +121,9 @@
                     </td>
                 </tr>
                 {% endfor %}
-                <tr>
+                <tr class="total-row">
                     <td colspan="2">סה״כ</td>
-                    <td>{{ "%.2f"|format(grand_total) }}</td>
+                    <td id="totalSum">{{ "%.2f"|format(grand_total) }}</td>
                 </tr>
             </tbody>
         </table>
@@ -128,34 +131,37 @@
 
     <script>
         const searchInput = document.getElementById("searchInput");
-        const table = document.getElementById("listsTable").getElementsByTagName("tbody")[0];
+        const tableBody = document.querySelector("#listsTable tbody");
+        const rows = tableBody.querySelectorAll("tr");
+        const totalCell = document.getElementById("totalSum");
 
         searchInput.addEventListener("input", function () {
-            const filter = searchInput.value.toLowerCase();
-            const rows = table.getElementsByTagName("tr");
-
+            const filter = searchInput.value.trim().toLowerCase();
             let total = 0;
 
-            for (let i = 0; i < rows.length - 1; i++) {
-                const cells = rows[i].getElementsByTagName("td");
-                let showRow = false;
+            rows.forEach((row, index) => {
+                if (row.classList.contains("total-row")) return;
 
-                for (let j = 0; j < cells.length; j++) {
-                    if (cells[j].textContent.toLowerCase().includes(filter)) {
-                        showRow = true;
+                const cells = row.getElementsByTagName("td");
+                let match = false;
+
+                for (let cell of cells) {
+                    if (cell.textContent.toLowerCase().includes(filter)) {
+                        match = true;
                         break;
                     }
                 }
 
-                rows[i].style.display = showRow ? "" : "none";
+                row.style.display = match ? "" : "none";
 
-                if (showRow && cells[2].textContent.trim() !== "-" && !isNaN(cells[2].textContent)) {
-                    total += parseFloat(cells[2].textContent);
+                if (match && cells.length >= 3) {
+                    const value = cells[2].textContent.replace(",", "").trim();
+                    if (!isNaN(value) && value !== "-") {
+                        total += parseFloat(value);
+                    }
                 }
-            }
+            });
 
-            // Update last row (total)
-            const totalCell = rows[rows.length - 1].getElementsByTagName("td")[2];
             totalCell.textContent = total.toFixed(2);
         });
     </script>
