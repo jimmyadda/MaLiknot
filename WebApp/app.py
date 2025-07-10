@@ -329,13 +329,29 @@ def update_collected(item_id):
         collected = data.get('collected', 0)
         list_id = data.get('list_id', 0)
         product_id = data.get('product_id', 0)
-        sql = f"UPDATE product_in_list SET collected = '{collected}' WHERE product_id = '{product_id}' and list_id= '{list_id}'"
-        ok = database_write(sql)
-        if ok == 1: 
-            check_and_notify_list_completion(list_id)
-            return jsonify({'message': 'Collected status updated'}), 200
+
+        sql = f"""
+            UPDATE product_in_list
+            SET collected = ?
+            WHERE product_id = ? AND list_id = ?
+        """
+        ok = database_write(sql, (collected, product_id, list_id))
+
+        if ok == 1:
+            # ✅ Check if all items in the list are collected
+            items = database_read(
+                "SELECT collected FROM product_in_list WHERE list_id = ?", (list_id,)
+            )
+            list_complete = all(item['collected'] for item in items)
+
+            if list_complete:
+                database_write("UPDATE lists SET archived = 1 WHERE id = ?", (list_id,))
+
+            return jsonify({'message': 'Collected status updated', 'list_complete': list_complete}), 200
+
         else:
             return jsonify({'error': 'Update failed'}), 500
+
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
@@ -554,7 +570,7 @@ def check_and_notify_list_completion(list_id):
 
     if items and all(item['collected'] for item in items):
             ok = database_write("update lists set archived=1 WHERE id = ?", (list_id,))
-            send_telegram_message(chat_id, f"✅ כל הפריטים נאספו! כמה שילמת ברכישה? שלח את הסכום (רשימה {list_id})")
+            send_telegram_message(chat_id, f"✅ כל הפריטים נאספו! עבור רשימה {list_id}")
 
 def run_flask():
     port = int(os.environ.get("PORT", 5000))
