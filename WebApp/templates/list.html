@@ -259,9 +259,7 @@ function updateCollected(checkbox) {
                     .then(resp => alert(resp.json()))
                     .then(json => {
                         alert(json.message || "✅ סכום נשמר!");
-                        // Optional: reload after saving
-
-
+                        // reload after saving
                         //setTimeout(() => window.location.reload(), 1500);
                     })
                     .catch(err => alert("⚠️ שגיאה בשמירת הסכום."));
