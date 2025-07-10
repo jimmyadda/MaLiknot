@@ -28,7 +28,7 @@ def create_db():
                 CREATE TABLE IF NOT EXISTS lists (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 name TEXT UNIQUE,
-                chat_id TEXT UNIQUE,
+                chat_id TEXT,
                 archived INTEGER DEFAULT 0
             );
     ''')

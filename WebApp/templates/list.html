@@ -250,11 +250,13 @@ function updateCollected(checkbox) {
                             amount: parseFloat(amount)
                         })
                     })
-                    .then(resp => resp.json())
+                    .then(resp => alert(resp.json()))
                     .then(json => {
                         alert(json.message || "✅ סכום נשמר!");
                         // Optional: reload after saving
-                        setTimeout(() => window.location.reload(), 1500);
+
+                        
+                        //setTimeout(() => window.location.reload(), 1500);
                     })
                     .catch(err => alert("⚠️ שגיאה בשמירת הסכום."));
                 } else {
