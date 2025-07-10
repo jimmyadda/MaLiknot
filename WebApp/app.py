@@ -326,6 +326,7 @@ def add_product_to_list():
 def update_collected(item_id):
     try:
         data = request.get_json()
+        
         collected = data.get('collected', 0)
         list_id = data.get('list_id', 0)
         product_id = data.get('product_id', 0)
@@ -534,8 +535,7 @@ def duplicate_list(list_id):
 @app.route('/save_expense', methods=['POST'])
 def save_expense():
     data = request.get_json()
-    print(">>> /save_expense called with:", data)
-
+    logger.info(f"save_expense called with:'{data}'  date: {str(datetime.now())}")
     try:
         amount = float(data.get('amount'))
         list_id = int(data.get('list_id'))
