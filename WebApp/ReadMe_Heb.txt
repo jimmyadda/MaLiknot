@@ -4,7 +4,7 @@
 🌐 הדגמה חיה
 
 אתר האפליקציה:
-https://web-production-feec9.up.railway.app
+https://maliknot.up.railway.app
 
 פרטי התחברות לדמו:
 
@@ -65,7 +65,7 @@ https://web-production-feec9.up.railway.app
 🚀 נסו עכשיו
 
     היכנסו לאתר:
-    https://web-production-feec9.up.railway.app
+    https://maliknot.up.railway.app
     והתחברו עם:
 
         שם משתמש: admin
