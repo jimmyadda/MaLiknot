@@ -16,10 +16,10 @@ def create_db():
                 CREATE TABLE IF NOT EXISTS lists (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 name TEXT UNIQUE,
+                chat_id TEXT UNIQUE
                 archived INTEGER DEFAULT 0
             );
     ''')
-    
     cursor.execute('''
     CREATE TABLE IF NOT EXISTS categories (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -57,6 +57,14 @@ def create_db():
 	"name"	TEXT,
 	PRIMARY KEY("userid")
 )    ''')
+    
+    cursor.execute(''' CREATE TABLE purchases (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    chat_id TEXT,
+    list_id INTEGER,
+    total_amount REAL,
+    timestamp DATETIME DEFAULT CURRENT_TIMESTAMP) ''')
+
     # הוספת קטגוריות
     categories = [
         "ירקות ופירות", "שימורים", "מוצרי חלב", "סלטים, שמנים, רטבים ותוספות", "קפואים",

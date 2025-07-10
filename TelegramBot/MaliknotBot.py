@@ -1,4 +1,5 @@
 import logging
+import re
 from dotenv import load_dotenv
 import requests
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
@@ -31,7 +32,8 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     payload = {
         'list_name': f"List from {chat_id}",
-        'items': text
+        'items': text,
+        'chat_id': chat_id  
     }
 
     response = requests.post(f"{FLASK_API_URL}/add_list_from_telegram", json=payload)
@@ -45,7 +47,10 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
         InlineKeyboardButton("📋 הצג את הרשימה", callback_data=f"showlist:{list_id}"),
         InlineKeyboardButton("🗑 מחק", callback_data=f"deletelist:{list_id}"),
         InlineKeyboardButton("🔁 שכפל", callback_data=f"duplicatelist:{list_id}")
-    ]]
+    ],
+        [
+            InlineKeyboardButton("📊 היסטוריית רשימות", url=f"https://maliknot.up.railway.app/user_lists/{chat_id}")
+        ]]
     reply_markup = InlineKeyboardMarkup(keyboard)
 
     if created:
@@ -62,8 +67,7 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
 async def handle_button_press(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
     await query.answer()
-    data = query.data
-    
+    data = query.data    
     if data.startswith("showlist:"):
         list_id = int(data.split(":")[1])
         response = requests.get(f"{FLASK_API_URL}/get_list/{list_id}")
@@ -102,6 +106,9 @@ async def handle_button_press(update: Update, context: ContextTypes.DEFAULT_TYPE
             InlineKeyboardButton("📋 הצג את הרשימה", callback_data=f"showlist:{new_id}"),
             InlineKeyboardButton("🗑 מחק", callback_data=f"deletelist:{new_id}"),
             InlineKeyboardButton("🔁 שכפל", callback_data=f"duplicatelist:{new_id}")
+        ],
+        [
+            InlineKeyboardButton("📊 היסטוריית רשימות", url=f"https://maliknot.up.railway.app/user_lists/{original_id}")
         ]]
         reply_markup = InlineKeyboardMarkup(keyboard)
 
@@ -111,6 +118,33 @@ async def handle_button_press(update: Update, context: ContextTypes.DEFAULT_TYPE
             reply_markup=reply_markup
         )
 
+
+async def handle_expense_sum(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    chat_id = update.effective_chat.id
+    text = update.message.text.strip()
+
+    # Check that it's a valid number
+    if not re.fullmatch(r"\d+(\.\d+)?", text):
+        return
+
+    payload = {
+        "chat_id": str(chat_id),
+        "amount": float(text)
+    }
+
+    try:
+        response = requests.post(f"{FLASK_API_URL}/save_expense", json=payload)
+        if response.status_code == 200:
+            data = response.json()
+            list_id = data.get("list_id")
+            await update.message.reply_text(f"✅ הסכום {text} ש״ח נשמר עבור רשימה {list_id}.")
+        else:
+            await update.message.reply_text("❌ לא נמצאה רשימה שסיימת לאחרונה או שקרתה שגיאה.")
+    except Exception as e:
+        print(f"Error sending expense to API: {e}")
+        await update.message.reply_text("⚠️ שגיאה בשליחה לשרת.")
+
+    
 async def error(update: object, context: ContextTypes.DEFAULT_TYPE):
     print(f'⚠️ Error: {context.error}')
 
@@ -118,6 +152,8 @@ if __name__ == "__main__":
     application = ApplicationBuilder().token(BOT_TOKEN).build()
     application.add_handler(CommandHandler("start", start_command))
     application.add_handler(MessageHandler(filters.TEXT & (~filters.COMMAND), handle_message))
+    #this line for the expense handler (filter number)
+    application.add_handler(MessageHandler(filters.TEXT & filters.Regex(r'^\d+(\.\d+)?$'), handle_expense_sum))
     application.add_handler(CallbackQueryHandler(handle_button_press))
     application.add_error_handler(error)
 
