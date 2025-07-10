@@ -1,0 +1,310 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<style>
+  .qty-wrapper {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+  }
+
+  .qty-wrapper button {
+    width: 30px;
+    height: 30px;
+    font-size: 18px;
+  }
+
+  .qty-wrapper input[type=number] {
+    width: 60px;
+    text-align: center;
+  }
+  .plus {
+    font-weight:bold;
+    float:right;
+    padding-right:4px;
+    content:"+";}
+
+    .minus{
+    font-weight:bold;
+    float:right;
+    padding-right:4px;
+    content:"-";}
+    .delete-btn {
+  background-color: red;
+  border: none;
+  color: white;
+  cursor: pointer;
+}
+
+@media (max-width: 768px) {
+  .notifyjs-corner {
+    top: 50% !important;
+    left: 50% !important;
+    transform: translate(-50%, -50%) !important;
+    right: auto !important;
+    bottom: auto !important;
+  }
+}
+.product-actions {
+  max-width: 280px;
+  margin: 0 auto;
+}
+
+.qty-wrapper {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+
+.qty-input {
+  width: 60px;
+  text-align: center;
+  padding: 0.25rem;
+}
+
+.qty-wrapper button {
+  width: 32px;
+  height: 32px;
+  font-size: 1.2rem;
+  padding: 0;
+  border-radius: 4px;
+}
+
+.note-input {
+  max-width: 100%;
+  margin: 0 auto 0.5rem;
+  padding: 0.25rem;
+}
+
+.action-wrapper .btn {
+  width: 100%;
+  max-width: 100%;
+}
+</style>
+
+
+<form class="d-flex">
+  <button class="btn btn-outline-dark" type="submit">
+      <i class="bi-cart-fill me-1"></i>
+      Cart
+      <span class="badge bg-dark text-white ms-1 rounded-pill">{{ get_collected_count(list_id) }}</span>
+  </button>
+</form>
+
+<body class="p-4">
+
+<!--All items -->
+<div class="container">
+  <h1 class="mb-3">🛒 Products in list:  {{ list_name }}   </h1>
+  <p id = "listid" style="display: none;">{{ list_id }}</p>
+
+  <ul id="itemsinlist"  class="list-group mb-3">
+    {% for item in items %}
+      <li class="list-group-item d-flex justify-content-between align-items-center
+          {% if item.collected %} list-group-item-success {% endif %}">
+        <span>
+          {{ loop.index }}. &nbsp; {{ item['name'] }}  &nbsp; {% if item.collected %}<strong>(נאסף)</strong>{% endif %}   <br>Quantity: {{ item['quantity'] }}  &nbsp;  Price: {{ item['price'] }}  &nbsp;  Notes:  {% if item.notes %}<strong>{{ item['notes']}}</strong>{% endif %}          
+        </span>
+          <div class="form-check">
+            <input class="form-check-input position-static" data-item-id="{{ item['product_id'] }}" type="checkbox" id="blankCheckbox" onchange="updateCollected(this)" value="option1" {% if item.collected %}checked{% endif %} >
+            <span class="">|</span> <!-- separator -->
+              <button id="del_prod" class="delete-btn" title="remove product from list"><i class="fa fa-trash"></i></button>
+          </div>
+      </li>
+    {% else %}
+      <li class="list-group-item">No items yet.</li>
+    {% endfor %}
+  </ul>
+
+
+
+
+  <form method="POST" class="d-flex mb-3">
+    <div class="container container-box">
+      <h1 class="mb-4"> Add Products to list</h1>
+      <div class="row row-cols-2 row-cols-sm-3 row-cols-md-4 row-cols-lg-5 g-3">
+          <input type="text" id="productFilter" style="margin-bottom: 5px;" class="form-control" placeholder="Filter products...">
+          {% for product in all_items%}  
+          <div class="col">
+          <div class="card" style="margin: 15px;">                 
+          <div class="card-body">
+              <p id = "prodid" style="display: none;">{{ product['id'] }}</p>
+              <!-- Product name-->
+              <div class="card-title">{{ product['name'] }}                            
+                  <!-- Product details-->
+                  <div class="card-text">                    
+                          <!-- Product price-->
+                          $ {{ product['price'] }}
+                          <br>
+                          {{ product['catName'] }}
+                          <br>
+                          {{ product['unit'] }}
+                      </div>
+                  </div>
+                  <div class="product-actions text-center"> <!--mobile-->
+                  <div class="qty-wrapper">
+                    <button class="minus" type="button" onclick="changeQty(this,-1)">-</button>
+                    <input type="number" name="quantity" id="quantity" value="1" min="1" class="qty-input">
+                    <button class="plus" type="button" onclick="changeQty(this,1)">+</button>
+                  </div>
+                  <!-- Product actions-->
+                  <div  class="action-wrapper">
+                    <!-- <input type="text" id="notes" name="notes" placeholder="add notes..">   -->
+                    <textarea id="notes" name="notes" rows="3" placeholder="add notes.." class="form-control note-input"></textarea>                    
+                  </div>
+                </div> <!--mobile-->
+                <div  style="display: flex;" class="text-center"><a class="btn btn-outline-dark mt-auto" href="#" onclick="addProductToList(this); return false;" >הוסף פריט לרשימה</a>
+                </div>
+              </div>
+          </div> 
+      </div>
+          {% endfor%}
+  </div>
+</div>
+  </form>
+</div>
+
+<script>
+
+  function addProductToList(anchor) {
+    //get clicked card data
+    const card = anchor.closest('.card-body'); // or any container class
+    const qtyInput = card.querySelector('.qty-input');
+    const qty = parseInt(qtyInput.value) || 1;   
+    const listid =  document.querySelector('#listid').textContent
+    const productid = card.querySelector('#prodid').textContent
+    const notes = card.querySelector('#notes').value
+      fetch("/add_product_to_list", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/x-www-form-urlencoded"
+        },
+        body: `list_id=${encodeURIComponent(listid)}&product_id=${encodeURIComponent(productid)}
+        &QTY=${encodeURIComponent(qty)}&notes=${encodeURIComponent(notes)}`
+      })
+      .then(data => {
+          if (data.status == 200) {
+            if (window.innerWidth < 768) {
+              console.log("mobile");
+                // Mobile - use SweetAlert
+                Swal.fire({
+                  title: 'פריט נוסף',
+                  text: 'הפריט התווסף לרשימה בהצלחה',
+                  icon: 'success',
+                  confirmButtonText: 'אישור'
+                });
+              } else {
+                // Desktop - use $.notify
+                $.notify("פריט התווסף לרשימה", "success");
+              }
+          } else {
+            $.notify("Error inserting Product", "error" );
+          }
+          setTimeout(function (){ window.location.href = window.location.href; }, 2000); 
+        });
+    }
+
+  function changeQty(button,delta) {
+    const wrapper = button.closest(".qty-wrapper");
+    const input = wrapper.querySelector("input.qty-input");
+    let current = parseInt(input.value) || 1;
+    current = Math.max(1, current + delta);
+    input.value = current;
+  }
+
+  function updateCollected(checkbox) {
+    const itemId = checkbox.dataset.itemId;
+    const collected = checkbox.checked ? 1 : 0;
+    const listid =  document.querySelector('#listid').textContent
+    fetch(`/update_collected/${itemId}`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-Requested-With': 'XMLHttpRequest'
+        },
+        body: JSON.stringify({list_id:listid, product_id: itemId, collected: collected })
+    })
+    .then(data => {
+          if (data.status == 200) {
+            $.notify("פריט נאסף", "success");            
+          } else {
+            $.notify("Error inserting Product", "error" );
+          }
+          setTimeout(function (){ window.location.href = window.location.href;}, 2000);           
+        });
+}
+
+ function DelProductFromList(button) {
+    //get clicked card data
+    const data = button.closest('.form-check'); // or any container class
+    const listid =  document.querySelector('#listid').textContent
+    const productid = data.querySelector('#blankCheckbox').dataset.itemId
+
+      fetch("/Remove_product_from_list", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/x-www-form-urlencoded"
+        },
+        body: `list_id=${encodeURIComponent(listid)}&product_id=${encodeURIComponent(productid)}`
+      })
+      .then(data => {
+          if (data.status == 200) {
+            if (window.innerWidth < 768) {
+              console.log("mobile");
+                // Mobile - use SweetAlert
+                Swal.fire({
+                  title: 'פריט הוסר',
+                  text: 'הפריט הוסר מהרשימה בהצלחה',
+                  icon: 'info',
+                  confirmButtonText: 'אישור'
+                });
+              } else {
+                // Desktop - use $.notify
+                $.notify("פריט הוסר מרשימה", "info");
+              }
+          } else {
+            $.notify("Error deleting Product", "error" );
+          }
+          setTimeout(function (){ window.location.href = window.location.href; }, 2000); 
+        }); 
+    }
+
+
+  $(document).ready(function() {
+
+    $('#itemsinlist').on('click', '.delete-btn', function () {
+        console.log($(this));
+        //deleteitemfromlist...
+        DelProductFromList(this);
+    });
+
+        //filter
+/*         $("#productFilter").on("keyup", function() {
+                var value = $(this).val().toLowerCase();
+                $(".card").filter(function() {
+                    $(this).toggle($(this).text().toLowerCase().indexOf(value) > -1);
+                });
+        }); */
+
+
+    $("#productFilter").on("keyup", function () {
+      
+      var value = $(this).val().toLowerCase();
+
+      $(".card").each(function () {
+        const text = $(this).text().toLowerCase();
+        if (text.indexOf(value) > -1) {
+          $(this).show(); // fully displays the card
+        } else {
+          $(this).hide(); // removes it from layout
+        }
+      });
+    });
+        
+});
+</script>
+
+</body>
+{% endblock %}
