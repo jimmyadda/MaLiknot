@@ -82,6 +82,12 @@
   width: 100%;
   max-width: 100%;
 }
+
+.notifyjs-corner {
+  top: 50% !important;
+  left: 50% !important;
+  transform: translate(-50%, -50%) !important;
+}
 </style>
 
 
@@ -255,7 +261,7 @@ function updateCollected(checkbox) {
                         alert(json.message || "✅ סכום נשמר!");
                         // Optional: reload after saving
 
-                        
+
                         //setTimeout(() => window.location.reload(), 1500);
                     })
                     .catch(err => alert("⚠️ שגיאה בשמירת הסכום."));

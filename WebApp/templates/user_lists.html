@@ -1,56 +1,163 @@
-<!-- templates/user_lists.html -->
 <!DOCTYPE html>
 <html lang="he">
 <head>
     <meta charset="UTF-8">
-    <title>הרשימות שלך</title>
+    <title>הרשימות שלי</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <style>
-        table {
-            border-collapse: collapse;
-            width: 80%;
+        body {
+            font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+            background: #f8f9fa;
+            direction: rtl;
+            margin: 0;
+            padding: 0;
+        }
+
+        .container {
+            max-width: 800px;
             margin: auto;
+            padding: 1rem;
         }
-        th, td {
-            padding: 10px;
-            border: 1px solid #aaa;
-            text-align: center;
-        }
+
         h2 {
             text-align: center;
+            color: #343a40;
+        }
+
+        input[type="text"] {
+            width: 100%;
+            padding: 0.75rem;
+            margin: 1rem 0;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            font-size: 1rem;
+            box-sizing: border-box;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.05);
+        }
+
+        th, td {
+            padding: 12px;
+            text-align: center;
+            border-bottom: 1px solid #eee;
+        }
+
+        th {
+            background-color: #007bff;
+            color: white;
+        }
+
+        tr:last-child td {
+            font-weight: bold;
+            background-color: #f1f1f1;
+        }
+
+        @media (max-width: 600px) {
+            table, thead, tbody, th, td, tr {
+                display: block;
+            }
+
+            thead {
+                display: none;
+            }
+
+            tr {
+                margin-bottom: 1rem;
+                padding: 1rem;
+                background: white;
+                border-radius: 8px;
+                box-shadow: 0 0 5px rgba(0, 0, 0, 0.05);
+            }
+
+            td {
+                text-align: right;
+                padding: 10px 16px;
+            }
+
+            td::before {
+                content: attr(data-label);
+                display: block;
+                font-weight: bold;
+                color: #555;
+                margin-bottom: 5px;
+            }
         }
     </style>
 </head>
 <body>
-    <h2>📋 הרשימות שלך</h2>
-    <table>
-        <thead>
-            <tr>
-                <th>מס׳ רשימה</th>
-                <th>שם</th>
-                <th>סכום רכישה (ש״ח)</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% set grand_total = 0 %}
-            {% for row in lists %}
-            <tr>
-                <td>{{ row['id'] }}</td>
-                <td>{{ row['name'] }}</td>
-                <td>
-                    {% if row['total_amount'] %}
-                        {{ row['total_amount'] }}
-                        {% set grand_total = grand_total + row['total_amount'] %}
-                    {% else %}
-                        -
-                    {% endif %}
-                </td>
-            </tr>
-            {% endfor %}
-            <tr style="font-weight: bold;">
-                <td colspan="2">סה״כ</td>
-                <td>{{ grand_total }}</td>
-            </tr>
-        </tbody>
-    </table>
+    <div class="container">
+        <h2>📋 היסטוריית רשימות</h2>
+        <input type="text" id="searchInput" placeholder="🔍 חפש לפי שם, סכום או מספר רשימה...">
+
+        <table id="listsTable">
+            <thead>
+                <tr>
+                    <th>מס׳</th>
+                    <th>שם רשימה</th>
+                    <th>סכום רכישה (ש״ח)</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% set grand_total = 0 %}
+                {% for row in lists %}
+                <tr>
+                    <td data-label="מס׳">{{ row['id'] }}</td>
+                    <td data-label="שם רשימה">{{ row['name'] }}</td>
+                    <td data-label="סכום">
+                        {% if row['total_amount'] %}
+                            {{ "%.2f"|format(row['total_amount']) }}
+                            {% set grand_total = grand_total + row['total_amount'] %}
+                        {% else %}
+                            -
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+                <tr>
+                    <td colspan="2">סה״כ</td>
+                    <td>{{ "%.2f"|format(grand_total) }}</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <script>
+        const searchInput = document.getElementById("searchInput");
+        const table = document.getElementById("listsTable").getElementsByTagName("tbody")[0];
+
+        searchInput.addEventListener("input", function () {
+            const filter = searchInput.value.toLowerCase();
+            const rows = table.getElementsByTagName("tr");
+
+            let total = 0;
+
+            for (let i = 0; i < rows.length - 1; i++) {
+                const cells = rows[i].getElementsByTagName("td");
+                let showRow = false;
+
+                for (let j = 0; j < cells.length; j++) {
+                    if (cells[j].textContent.toLowerCase().includes(filter)) {
+                        showRow = true;
+                        break;
+                    }
+                }
+
+                rows[i].style.display = showRow ? "" : "none";
+
+                if (showRow && cells[2].textContent.trim() !== "-" && !isNaN(cells[2].textContent)) {
+                    total += parseFloat(cells[2].textContent);
+                }
+            }
+
+            // Update last row (total)
+            const totalCell = rows[rows.length - 1].getElementsByTagName("td")[2];
+            totalCell.textContent = total.toFixed(2);
+        });
+    </script>
 </body>
 </html>
