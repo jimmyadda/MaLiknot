@@ -214,27 +214,69 @@
     input.value = current;
   }
 
-  function updateCollected(checkbox) {
+function updateCollected(checkbox) {
     const itemId = checkbox.dataset.itemId;
     const collected = checkbox.checked ? 1 : 0;
-    const listid =  document.querySelector('#listid').textContent
+    const listid = document.querySelector('#listid').textContent;
+
     fetch(`/update_collected/${itemId}`, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
             'X-Requested-With': 'XMLHttpRequest'
         },
-        body: JSON.stringify({list_id:listid, product_id: itemId, collected: collected })
+        body: JSON.stringify({
+            list_id: listid,
+            product_id: itemId,
+            collected: collected
+        })
     })
+    .then(response => response.json())
     .then(data => {
-          if (data.status == 200) {
-            $.notify("פריט נאסף", "success");            
-          } else {
-            $.notify("Error inserting Product", "error" );
-          }
-          setTimeout(function (){ window.location.href = window.location.href;}, 2000);           
-        });
+        if (data.message === 'Collected status updated') {
+            $.notify("פריט נאסף", "success");
+
+            // ✅ Check if all items were collected — prompt for total expense
+            if (data.list_complete) {
+                let amount = prompt("✅ כל הפריטים נאספו! כמה שילמת בסך הכול?");
+                if (amount && !isNaN(amount)) {
+                    fetch('/save_expense', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            list_id: listid,
+                            amount: parseFloat(amount)
+                        })
+                    })
+                    .then(resp => resp.json())
+                    .then(json => {
+                        alert(json.message || "✅ סכום נשמר!");
+                        // Optional: reload after saving
+                        setTimeout(() => window.location.reload(), 1500);
+                    })
+                    .catch(err => alert("⚠️ שגיאה בשמירת הסכום."));
+                } else {
+                    // Reload anyway if user cancels
+                    setTimeout(() => window.location.reload(), 1500);
+                }
+            } else {
+                // Not complete — just reload normally
+                setTimeout(() => window.location.reload(), 1500);
+            }
+        } else {
+            $.notify("⚠️ שגיאה בשמירה", "error");
+            setTimeout(() => window.location.reload(), 1500);
+        }
+    })
+    .catch(err => {
+        console.error("Error:", err);
+        $.notify("⚠️ שגיאה בשרת", "error");
+        setTimeout(() => window.location.reload(), 1500);
+    });
 }
+
 
  function DelProductFromList(button) {
     //get clicked card data
