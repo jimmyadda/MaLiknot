@@ -345,7 +345,10 @@ def update_collected(item_id):
             list_complete = all(item['collected'] for item in items)
 
             if list_complete:
-                database_write("UPDATE lists SET archived = 1 WHERE id = ?", (list_id,))
+                chat_id = database_read("SELECT chat_id FROM lists WHERE id = ?", (list_id,))[0]["chat_id"]
+                database_write(""" UPDATE lists SET archived = 1, name = name || ' (Archived)'
+                        WHERE id = ? """, (list_id,))
+                send_telegram_message(chat_id, f"✅ כל הפריטים ברשימה שלך נאספו בהצלחה! (#{list_id})")
 
             return jsonify({'message': 'Collected status updated', 'list_complete': list_complete}), 200
 
@@ -578,7 +581,8 @@ def check_and_notify_list_completion(list_id):
     chat_id = already[0]['chat_id']
     items = database_read("SELECT collected FROM product_in_list WHERE list_id = ?", (list_id,))
     if items and all(item['collected'] for item in items):
-        database_write("UPDATE lists SET archived = 1 WHERE id = ?", (list_id,))
+        database_write(""" UPDATE lists SET archived = 1, name = name || ' (Archived)'
+                        WHERE id = ? """, (list_id,))
         send_telegram_message(chat_id, f"✅ כל הפריטים ברשימה שלך נאספו בהצלחה! (#{list_id})")
 
 
