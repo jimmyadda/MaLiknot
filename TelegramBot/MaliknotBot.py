@@ -136,7 +136,7 @@ async def handle_button_press(update: Update, context: ContextTypes.DEFAULT_TYPE
         )
 
 
-async def handle_expense_sum(update: Update, context: ContextTypes.DEFAULT_TYPE):
+""" async def handle_expense_sum(update: Update, context: ContextTypes.DEFAULT_TYPE):
     chat_id = update.effective_chat.id
     text = update.message.text.strip()
 
@@ -160,7 +160,7 @@ async def handle_expense_sum(update: Update, context: ContextTypes.DEFAULT_TYPE)
     except Exception as e:
         print(f"Error sending expense to API: {e}")
         await update.message.reply_text("⚠️ שגיאה בשליחה לשרת.")
-
+ """
     
 async def error(update: object, context: ContextTypes.DEFAULT_TYPE):
     print(f'⚠️ Error: {context.error}')
@@ -170,7 +170,7 @@ if __name__ == "__main__":
     application.add_handler(CommandHandler("start", start_command))
     application.add_handler(MessageHandler(filters.TEXT & (~filters.COMMAND), handle_message))
     #this line for the expense handler (filter number)
-    application.add_handler(MessageHandler(filters.TEXT & filters.Regex(r'^\d+(\.\d+)?$'), handle_expense_sum))
+    #application.add_handler(MessageHandler(filters.TEXT & filters.Regex(r'^\d+(\.\d+)?$'), handle_expense_sum))
     application.add_handler(CallbackQueryHandler(handle_button_press))
     application.add_error_handler(error)
 
