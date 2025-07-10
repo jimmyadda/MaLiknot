@@ -569,6 +569,16 @@ def check_and_notify_list_completion(list_id):
         send_telegram_message(chat_id, f"✅ כל הפריטים ברשימה שלך נאספו בהצלחה! (#{list_id})")
 
 
+
+
+@app.route('/debug/db/<table>')
+def debug_db_table(table):
+    try:
+        rows = database_read(f"SELECT * FROM {table}")
+        return jsonify(rows)
+    except Exception as e:
+        return jsonify({"error": str(e)})
+                       
 def run_flask():
     port = int(os.environ.get("PORT", 5000))
     app.run(host="0.0.0.0", port=port)
