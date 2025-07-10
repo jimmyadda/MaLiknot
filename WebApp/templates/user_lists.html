@@ -1,0 +1,56 @@
+<!-- templates/user_lists.html -->
+<!DOCTYPE html>
+<html lang="he">
+<head>
+    <meta charset="UTF-8">
+    <title>הרשימות שלך</title>
+    <style>
+        table {
+            border-collapse: collapse;
+            width: 80%;
+            margin: auto;
+        }
+        th, td {
+            padding: 10px;
+            border: 1px solid #aaa;
+            text-align: center;
+        }
+        h2 {
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <h2>📋 הרשימות שלך</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>מס׳ רשימה</th>
+                <th>שם</th>
+                <th>סכום רכישה (ש״ח)</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% set grand_total = 0 %}
+            {% for row in lists %}
+            <tr>
+                <td>{{ row['id'] }}</td>
+                <td>{{ row['name'] }}</td>
+                <td>
+                    {% if row['total_amount'] %}
+                        {{ row['total_amount'] }}
+                        {% set grand_total = grand_total + row['total_amount'] %}
+                    {% else %}
+                        -
+                    {% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+            <tr style="font-weight: bold;">
+                <td colspan="2">סה״כ</td>
+                <td>{{ grand_total }}</td>
+            </tr>
+        </tbody>
+    </table>
+</body>
+</html>
