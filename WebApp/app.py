@@ -387,6 +387,17 @@ def export(list_name):
     return send_file(io.BytesIO(output.getvalue().encode()), as_attachment=True,
                      download_name=f"{list_name}_grocery_list.csv", mimetype="text/csv")
 
+@app.route("/user_lists/<chat_id>")
+def user_lists(chat_id):
+    lists = database_read("""
+        SELECT l.id, l.name, p.total_amount
+        FROM lists l
+        LEFT JOIN purchases p ON l.id = p.list_id
+        WHERE l.chat_id = ?
+        ORDER BY l.id DESC
+    """, (chat_id,))
+    return render_template("user_lists.html", lists=lists)
+
 @app.after_request
 def add_header(response):
     if request.path.endswith('service-worker.js'):
@@ -401,6 +412,7 @@ def add_list_from_telegram():
     data = request.get_json()
     list_name = data.get('list_name', 'Telegram List')
     items_text = data.get('items', '')
+    chat_id = str(data.get('chat_id'))
 
     if not items_text:
         return jsonify({"error": "No items provided"}), 400
@@ -440,7 +452,7 @@ def add_list_from_telegram():
         list_id = existing_list[0]['id']
         print(list_id)
     else:
-        database_write("INSERT INTO lists (name) VALUES (?)", (list_name,))
+        database_write("INSERT INTO lists (name,chat_id) VALUES (?,?)", (list_name,chat_id))
         list_id = database_read("SELECT max(id) as id FROM lists")[0]['id']
 
     for item in item_details:
@@ -496,6 +508,27 @@ def duplicate_list(list_id):
         )
     return jsonify({"new_id": new_id})
 
+@app.route('/save_expense', methods=['POST'])
+def save_expense():
+    data = request.get_json()
+    chat_id = str(data.get('chat_id'))
+    amount = float(data.get('amount'))
+
+    result = database_read("""
+        SELECT id FROM lists WHERE chat_id = ? AND archived = 1
+        ORDER BY id DESC LIMIT 1
+    """, (chat_id,))
+    if not result:
+        return jsonify({'status': 'error', 'message': 'No archived list found'}), 404
+
+    list_id = result[0]['id']
+    database_write("""
+        INSERT INTO purchases (chat_id, list_id, total_amount)
+        VALUES (?, ?, ?)
+    """, (chat_id, list_id, amount))
+
+    return jsonify({'status': 'success', 'list_id': list_id})
+
 #EndRegion
 
 
@@ -517,7 +550,7 @@ def check_and_notify_list_completion(list_id):
 
     if items and all(item['collected'] for item in items):
             ok = database_write("update lists set archived=1 WHERE id = ?", (list_id,))
-            send_telegram_message(chat_id, f"✅ כל הפריטים ברשימה שלך נאספו בהצלחה! (#{list_id})")
+            send_telegram_message(chat_id, f"✅ כל הפריטים נאספו! כמה שילמת ברכישה? שלח את הסכום (רשימה {list_id})")
 
 def run_flask():
     port = int(os.environ.get("PORT", 5000))
