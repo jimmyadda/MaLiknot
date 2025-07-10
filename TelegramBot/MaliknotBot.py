@@ -21,21 +21,38 @@ FLASK_API_URL = os.getenv("FLASK_API_URL")
 
 async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text(
-        ".שלום, אנא שילחו רשימת קניות מופרדת בפסיקים\n"
-        "פורמט: product [quantity] [note]\n"
-        "לדוגמה: חלב 2, תפוח 5 ירוק, לחם 1 פרוס"
+        "📋 שלחו רשימת קניות:\n"
+        " שורה ראשונה – שם הרשימה (למשל: קניות לשבת)\n"
+        " שורה שנייה – פריטים מופרדים בפסיקים\n\n"
+        " דוגמה:\n"
+        "קניות לסופ\"ש\n"
+        "חלב 2, לחם פרוס, עגבנייה 6"
     )
 
 async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     chat_id = update.effective_chat.id
     text = update.message.text
 
+    lines = update.message.text.strip().splitlines()
+
+    # אם יש לפחות שתי שורות – השורה הראשונה היא שם הרשימה
+    if len(lines) >= 2:
+        first_line = lines[0].strip()
+        if first_line.startswith("[") and first_line.endswith("]"):
+            name_part = first_line[1:-1].strip()
+        else:
+            name_part = first_line
+        list_name = f"[{chat_id}] {name_part}"
+        items_text = "\n".join(lines[1:]).strip()
+    else:
+        list_name = f"[{chat_id}] Telegram List"
+        items_text = update.message.text.strip()
+
     payload = {
         'list_name': f"List from {chat_id}",
         'items': text,
-        'chat_id': chat_id  
+        'chat_id': chat_id 
     }
-
     response = requests.post(f"{FLASK_API_URL}/add_list_from_telegram", json=payload)
     data = response.json()
 
