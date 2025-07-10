@@ -16,7 +16,7 @@ import uuid
 import logging
 import hashlib
 from telegram_utils import send_telegram_message, extract_chat_id
-from internal_logic  import add_list_from_telegram # type: ignore
+#from internal_logic  import add_list_from_telegram # type: ignore
 from flask import send_from_directory
 import nest_asyncio
 import asyncio
@@ -533,15 +533,17 @@ def save_expense():
     data = request.get_json()
     chat_id = str(data.get('chat_id'))
     amount = float(data.get('amount'))
+    list_id = int(data.get('list_id')) 
+
+    chat_id = database_read("SELECT chat_id FROM lists WHERE id = ?", (list_id,))[0]["chat_id"]
 
     result = database_read("""
-        SELECT id FROM lists WHERE chat_id = ? AND archived = 1
-        ORDER BY id DESC LIMIT 1
-    """, (chat_id,))
+        SELECT id FROM lists WHERE chat_id = ? AND archived = 1 AND id = ?
+    """, (chat_id, list_id))
+
     if not result:
         return jsonify({'status': 'error', 'message': 'No archived list found'}), 404
 
-    list_id = result[0]['id']
     database_write("""
         INSERT INTO purchases (chat_id, list_id, total_amount)
         VALUES (?, ?, ?)
@@ -549,28 +551,23 @@ def save_expense():
 
     return jsonify({'status': 'success', 'list_id': list_id})
 
+
 #EndRegion
 
 
 
 def check_and_notify_list_completion(list_id):
-    list_info = database_read("SELECT name FROM lists WHERE id = ?", (list_id,))
-    if not list_info:
+    # Skip if already archived
+    already = database_read("SELECT archived, chat_id FROM lists WHERE id = ?", (list_id,))
+    if not already or already[0]['archived'] == 1:
         return
 
-    list_name = list_info[0]['name']
-    chat_id = extract_chat_id(list_name)
-    if not chat_id:
-        print(f"Could not extract chat_id from list name: {list_name}")
-        return
-
-    items = database_read("""
-        SELECT collected FROM product_in_list WHERE list_id = ?
-    """, (list_id,))
-
+    chat_id = already[0]['chat_id']
+    items = database_read("SELECT collected FROM product_in_list WHERE list_id = ?", (list_id,))
     if items and all(item['collected'] for item in items):
-            ok = database_write("update lists set archived=1 WHERE id = ?", (list_id,))
-            send_telegram_message(chat_id, f"✅ כל הפריטים נאספו! עבור רשימה {list_id}")
+        database_write("UPDATE lists SET archived = 1 WHERE id = ?", (list_id,))
+        send_telegram_message(chat_id, f"✅ כל הפריטים ברשימה שלך נאספו בהצלחה! (#{list_id})")
+
 
 def run_flask():
     port = int(os.environ.get("PORT", 5000))
