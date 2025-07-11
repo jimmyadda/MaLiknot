@@ -130,40 +130,54 @@
     </div>
 
     <script>
-        const searchInput = document.getElementById("searchInput");
-        const tableBody = document.querySelector("#listsTable tbody");
-        const rows = tableBody.querySelectorAll("tr");
-        const totalCell = document.getElementById("totalSum");
+           const searchInput = document.getElementById("searchInput");
+    const tableBody = document.querySelector("#listsTable tbody");
+    const rows = tableBody.querySelectorAll("tr");
+    const totalCell = document.getElementById("totalSum");
 
-        searchInput.addEventListener("input", function () {
-            const filter = searchInput.value.trim().toLowerCase();
-            let total = 0;
+    // ✅ Separate: sum visible amounts
+    function calculateVisibleTotal() {
+        let total = 0;
+        rows.forEach(row => {
+            if (row.classList.contains("total-row")) return;
+            if (row.style.display === "none") return;
 
-            rows.forEach((row, index) => {
-                if (row.classList.contains("total-row")) return;
-
-                const cells = row.getElementsByTagName("td");
-                let match = false;
-
-                for (let cell of cells) {
-                    if (cell.textContent.toLowerCase().includes(filter)) {
-                        match = true;
-                        break;
-                    }
+            const cells = row.getElementsByTagName("td");
+            if (cells.length >= 3) {
+                const value = cells[2].textContent.replace(",", "").trim();
+                if (!isNaN(value) && value !== "-") {
+                    total += parseFloat(value);
                 }
-
-                row.style.display = match ? "" : "none";
-
-                if (match && cells.length >= 3) {
-                    const value = cells[2].textContent.replace(",", "").trim();
-                    if (!isNaN(value) && value !== "-") {
-                        total += parseFloat(value);
-                    }
-                }
-            });
-
-            totalCell.textContent = total.toFixed(2);
+            }
         });
+        totalCell.textContent = total.toFixed(2);
+    }
+
+    // ✅ Filter table by search input
+    function filterTableRows() {
+        const filter = searchInput.value.trim().toLowerCase();
+        rows.forEach(row => {
+            if (row.classList.contains("total-row")) return;
+
+            const cells = row.getElementsByTagName("td");
+            let match = false;
+            for (let cell of cells) {
+                if (cell.textContent.toLowerCase().includes(filter)) {
+                    match = true;
+                    break;
+                }
+            }
+            row.style.display = match ? "" : "none";
+        });
+
+        calculateVisibleTotal();
+    }
+
+    // Run on load
+    window.addEventListener("DOMContentLoaded", filterTableRows);
+
+    // Run on input
+    searchInput.addEventListener("input", filterTableRows);
     </script>
 </body>
 </html>
