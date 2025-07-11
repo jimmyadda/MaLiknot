@@ -134,33 +134,6 @@ async def handle_button_press(update: Update, context: ContextTypes.DEFAULT_TYPE
             text=f"🔁 הרשימה שוכפלה. מזהה חדש: {new_id} \n📋 לצפייה ברשימה: {url} ",
             reply_markup=reply_markup
         )
-
-
-""" async def handle_expense_sum(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    chat_id = update.effective_chat.id
-    text = update.message.text.strip()
-
-    # Check that it's a valid number
-    if not re.fullmatch(r"\d+(\.\d+)?", text):
-        return
-
-    payload = {
-        "chat_id": str(chat_id),
-        "amount": float(text)
-    }
-
-    try:
-        response = requests.post(f"{FLASK_API_URL}/save_expense", json=payload)
-        if response.status_code == 200:
-            data = response.json()
-            list_id = data.get("list_id")
-            await update.message.reply_text(f"✅ הסכום {text} ש״ח נשמר עבור רשימה {list_id}.")
-        else:
-            await update.message.reply_text("❌ לא נמצאה רשימה שסיימת לאחרונה או שקרתה שגיאה.")
-    except Exception as e:
-        print(f"Error sending expense to API: {e}")
-        await update.message.reply_text("⚠️ שגיאה בשליחה לשרת.")
- """
     
 async def error(update: object, context: ContextTypes.DEFAULT_TYPE):
     print(f'⚠️ Error: {context.error}')
