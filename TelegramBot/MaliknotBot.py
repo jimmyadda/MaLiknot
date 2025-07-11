@@ -84,7 +84,8 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
 async def handle_button_press(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
     await query.answer()
-    data = query.data    
+    data = query.data 
+    chat_id = query.message.chat_id   
     if data.startswith("showlist:"):
         list_id = int(data.split(":")[1])
         response = requests.get(f"{FLASK_API_URL}/get_list/{list_id}")
@@ -125,7 +126,7 @@ async def handle_button_press(update: Update, context: ContextTypes.DEFAULT_TYPE
             InlineKeyboardButton("🔁 שכפל", callback_data=f"duplicatelist:{new_id}")
         ],
         [
-            InlineKeyboardButton("📊 היסטוריית רשימות", url=f"https://maliknot.up.railway.app/user_lists/{original_id}")
+            InlineKeyboardButton("📊 היסטוריית רשימות", url=f"https://maliknot.up.railway.app/user_lists/{chat_id}")
         ]]
         reply_markup = InlineKeyboardMarkup(keyboard)
 
