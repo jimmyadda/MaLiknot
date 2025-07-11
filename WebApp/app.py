@@ -514,14 +514,17 @@ def delete_list(list_id):
     database_write("DELETE FROM lists WHERE id = ?", (list_id,))
     return jsonify({"success": True})
 
+
+#handel list chatid 
 @app.route("/api/duplicate_list/<int:list_id>", methods=["POST"])
 def duplicate_list(list_id):
     original = database_read("SELECT name FROM lists WHERE id = ?", (list_id,))
     if not original:
-        return jsonify({"error": "Not found"}), 404
-
+        return jsonify({"error": "Not found"}), 404     
+       
+    chat_id = database_read("SELECT chat_id FROM lists WHERE id = ?", (list_id,))[0]["chat_id"]
     new_name = original[0]['name'] + " (העתק)"
-    database_write("INSERT INTO lists (name) VALUES (?)", (new_name,))
+    database_write("INSERT INTO lists (name,chat_id) VALUES (?,?)", (new_name,chat_id))
     new_id = database_read("SELECT max(id) as id FROM lists")[0]['id']
 
     items = database_read("SELECT product_id, quantity, notes FROM product_in_list WHERE list_id = ?", (list_id,))
