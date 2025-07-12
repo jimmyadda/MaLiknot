@@ -427,7 +427,11 @@ def export(list_name):
 @app.route("/user_lists/<chat_id>")
 def user_lists(chat_id):
     lists = database_read("""
-        SELECT l.id, l.name, p.total_amount
+        SELECT 
+            l.id, 
+            l.name, 
+            p.total_amount,
+            DATE(p.timestamp) AS purchase_date
         FROM lists l
         LEFT JOIN purchases p ON l.id = p.list_id
         WHERE l.chat_id = ?

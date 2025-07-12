@@ -100,6 +100,7 @@
         <table id="listsTable">
             <thead>
                 <tr>
+                    <th>תאריך רכישה</th>
                     <th>מס׳</th>
                     <th>שם רשימה</th>
                     <th>סכום רכישה (ש״ח)</th>
@@ -109,6 +110,9 @@
                 {% set grand_total = 0 %}
                 {% for row in lists %}
                 <tr>
+                    <td data-label="תאריך">
+                        {{ row['purchase_date'] if row['purchase_date'] else '-' }}
+                    </td>
                     <td data-label="מס׳">{{ row['id'] }}</td>
                     <td data-label="שם רשימה">{{ row['name'] }}</td>
                     <td data-label="סכום">
@@ -122,7 +126,7 @@
                 </tr>
                 {% endfor %}
                 <tr class="total-row">
-                    <td colspan="2">סה״כ</td>
+                    <td colspan="3">סה״כ</td>
                     <td id="totalSum">{{ "%.2f"|format(grand_total) }}</td>
                 </tr>
             </tbody>
