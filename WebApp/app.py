@@ -347,11 +347,17 @@ def update_collected(item_id):
             list_complete = all(int(item['collected']) for item in items)
 
             if list_complete:
-                chat_id = database_read("SELECT chat_id FROM lists WHERE id = ?", (list_id,))[0]["chat_id"]
-                database_write(""" UPDATE lists SET archived = 1, name = name || ' (Archived)'
-                        WHERE id = ? """, (list_id,))
-                send_telegram_message(chat_id, f"✅ כל הפריטים ברשימה שלך נאספו בהצלחה! (#{list_id})")
-
+                chat_row = database_read("SELECT chat_id FROM lists WHERE id = ?", (list_id,))
+                if chat_row and chat_row[0].get("chat_id"):
+                    chat_id = chat_row[0]["chat_id"]
+                    database_write("""
+                        UPDATE lists SET archived = 1, name = name || ' (Archived)' WHERE id = ?
+                    """, (list_id,))
+                    try:
+                        send_telegram_message(chat_id, f"✅ כל הפריטים ברשימה שלך נאספו בהצלחה! (#{list_id})")
+                    except Exception as e:
+                        print("⚠️ Telegram error:", e)
+            print("✅ Returning collected status updated with list_complete =", list_complete)    
             return jsonify({'message': 'Collected status updated', 'list_complete': list_complete}), 200
 
         else:

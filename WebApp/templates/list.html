@@ -239,6 +239,7 @@ function updateCollected(checkbox) {
     })
     .then(response => response.json())
     .then(data => {
+        console.log("📦 Server response:", data);  // 👈 log it
         if (data.message === 'Collected status updated') {
             $.notify("פריט נאסף", "success");
 
@@ -256,7 +257,7 @@ function updateCollected(checkbox) {
                             amount: parseFloat(amount)
                         })
                     })
-                    .then(resp => alert(resp.json()))
+                    .then(resp => resp.json())
                     .then(json => {
                         alert(json.message || "✅ סכום נשמר!");
                         // reload after saving
@@ -273,7 +274,7 @@ function updateCollected(checkbox) {
             }
         } else {
             $.notify("⚠️ שגיאה בשמירה", "error");
-            setTimeout(() => window.location.reload(), 1500);
+            //setTimeout(() => window.location.reload(), 1500);
         }
     })
     .catch(err => {
@@ -282,7 +283,6 @@ function updateCollected(checkbox) {
         setTimeout(() => window.location.reload(), 1500);
     });
 }
-
 
  function DelProductFromList(button) {
     //get clicked card data
