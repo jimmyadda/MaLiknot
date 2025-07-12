@@ -343,7 +343,8 @@ def update_collected(item_id):
             items = database_read(
                 "SELECT collected FROM product_in_list WHERE list_id = ?", (list_id,)
             )
-            list_complete = all(item['collected'] for item in items)
+            #list_complete = all(item['collected'] for item in items)
+            list_complete = all(int(item['collected']) for item in items)
 
             if list_complete:
                 chat_id = database_read("SELECT chat_id FROM lists WHERE id = ?", (list_id,))[0]["chat_id"]
