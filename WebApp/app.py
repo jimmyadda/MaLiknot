@@ -351,7 +351,13 @@ def update_collected(item_id):
                 if chat_row and chat_row[0].get("chat_id"):
                     chat_id = chat_row[0]["chat_id"]
                     database_write("""
-                        UPDATE lists SET archived = 1, name = name || ' (Archived)' WHERE id = ?
+                        UPDATE lists
+                        SET archived = 1,
+                            name = CASE
+                                WHEN name LIKE '%(Archived)' THEN name
+                                ELSE name || ' (Archived)'
+                            END
+                        WHERE id = ?
                     """, (list_id,))
                     try:
                         send_telegram_message(chat_id, f"✅ כל הפריטים ברשימה שלך נאספו בהצלחה! (#{list_id})")
@@ -444,6 +450,8 @@ def add_list_from_telegram():
     list_name = data.get('list_name', 'Telegram List')
     items_text = data.get('items', '')
     chat_id = str(data.get('chat_id'))
+    count = database_read("SELECT COUNT(*) as total FROM lists WHERE chat_id = ?", (chat_id,))[0]["total"]
+    list_name = f"List from {chat_id} #{count + 1}"
 
     if not items_text:
         return jsonify({"error": "No items provided"}), 400
