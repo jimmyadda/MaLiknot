@@ -22,10 +22,12 @@ FLASK_API_URL = os.getenv("FLASK_API_URL")
 async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text(
         "📋 שלחו רשימת קניות:\n"
-        " שורה ראשונה – שם הרשימה (למשל: קניות לשבת)\n"
+        " שורה ראשונה – שם הרשימה (למשל: קניות לשבת :)\n"
+        "✏️ הקפד/י שהשם יסתיים בנקודתיים `:` או מקף `-`\n"
+        "כדי שנדע שזהו שם הרשימה.\n\n"
         " שורה שנייה – פריטים מופרדים בפסיקים\n\n"
         " דוגמה:\n"
-        "קניות לסופ\"ש\n"
+        "-קניות לסופש\n"
         "חלב 2, לחם פרוס, עגבנייה 6"
     )
 
@@ -35,13 +37,9 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     lines = update.message.text.strip().splitlines()
 
-    # אם יש לפחות שתי שורות – השורה הראשונה היא שם הרשימה
-    if len(lines) >= 2:
-        first_line = lines[0].strip()
-        if first_line.startswith("[") and first_line.endswith("]"):
-            name_part = first_line[1:-1].strip()
-        else:
-            name_part = first_line
+    # אם יש לפחות שתי שורות והשורה הראשונה מסתיימת בתו מפריד – זו שם הרשימה
+    if len(lines) >= 2 and re.match(r".*[:|\-–—]$", lines[0]):
+        name_part = re.sub(r"[:|\-–—]$", "", lines[0]).strip()  # remove the final colon or dash
         list_name = f"[{chat_id}] {name_part}"
         items_text = "\n".join(lines[1:]).strip()
     else:
@@ -49,9 +47,9 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
         items_text = update.message.text.strip()
 
     payload = {
-        'list_name': f"List from {chat_id}",
-        'items': text,
-        'chat_id': chat_id 
+        'list_name': list_name,
+        'items': items_text,
+        'chat_id': chat_id
     }
     response = requests.post(f"{FLASK_API_URL}/add_list_from_telegram", json=payload)
     data = response.json()
