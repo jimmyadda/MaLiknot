@@ -77,6 +77,10 @@ def create_db():
     total_amount REAL,
     timestamp DATETIME DEFAULT CURRENT_TIMESTAMP) ''')
 
+    cursor.execute(''' CREATE TABLE IF NOT EXISTS user_settings (
+    chat_id TEXT PRIMARY KEY,
+    lang TEXT); ''')
+
     # הוספת קטגוריות
     categories = [
         "ירקות ופירות", "שימורים", "מוצרי חלב", "סלטים, שמנים, רטבים ותוספות", "קפואים",

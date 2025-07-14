@@ -9,6 +9,9 @@ from telegram.ext import (
 )
 import os
 
+from language_utils import get_user_language
+from TelegramBot.messages import get_message
+
 
 
 logging.basicConfig(level=logging.INFO)
@@ -20,16 +23,20 @@ BOT_TOKEN = os.getenv("BOT_TOKEN")
 FLASK_API_URL = os.getenv("FLASK_API_URL")
 
 async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    await update.message.reply_text(
-        "📋 שלחו רשימת קניות:\n"
-        " שורה ראשונה – שם הרשימה (למשל: קניות לשבת :)\n"
-        "✏️ הקפד/י שהשם יסתיים בנקודתיים `:` או מקף `-`\n"
-        "כדי שנדע שזהו שם הרשימה.\n\n"
-        " שורה שנייה – פריטים מופרדים בפסיקים\n\n"
-        " דוגמה:\n"
-        "-קניות לסופש\n"
-        "חלב 2, לחם פרוס, עגבנייה 6"
-    )
+    lang = get_user_language(update.effective_chat.id)
+    msg = get_message("start", lang)
+    await update.message.reply_text(msg, parse_mode="Markdown")
+
+    # await update.message.reply_text(
+    #     "📋 שלחו רשימת קניות:\n"
+    #     " שורה ראשונה – שם הרשימה (למשל: קניות לשבת :)\n"
+    #     "✏️ הקפד/י שהשם יסתיים בנקודתיים `:` או מקף `-`\n"
+    #     "כדי שנדע שזהו שם הרשימה.\n\n"
+    #     " שורה שנייה – פריטים מופרדים בפסיקים\n\n"
+    #     " דוגמה:\n"
+    #     "-קניות לסופש\n"
+    #     "חלב 2, לחם פרוס, עגבנייה 6"
+    # )
 
 async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     chat_id = update.effective_chat.id
@@ -59,25 +66,22 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     url = f"https://maliknot.up.railway.app/list/{list_id}"
 
     keyboard = [[
-        InlineKeyboardButton("📋 הצג את הרשימה", callback_data=f"showlist:{list_id}"),
-        InlineKeyboardButton("🗑 מחק", callback_data=f"deletelist:{list_id}"),
-        InlineKeyboardButton("🔁 שכפל", callback_data=f"duplicatelist:{list_id}")
-    ],
-        [
-            InlineKeyboardButton("📊 היסטוריית רשימות", url=f"https://maliknot.up.railway.app/user_lists/{chat_id}")
-        ]]
+        InlineKeyboardButton(get_message("keyboard.view", lang), callback_data=f"showlist:{list_id}"),
+        InlineKeyboardButton(get_message("keyboard.delete", lang), callback_data=f"deletelist:{list_id}"),
+        InlineKeyboardButton(get_message("keyboard.duplicate", lang), callback_data=f"duplicatelist:{list_id}")
+    ], [
+        InlineKeyboardButton(get_message("keyboard.history", lang), url=f"https://maliknot.up.railway.app/user_lists/{chat_id}")
+    ]]
     reply_markup = InlineKeyboardMarkup(keyboard)
 
     if created:
-        await update.message.reply_text(
-            f"✅ רשימה חדשה נוצרה! {list_id}\n📋 לצפייה ברשימה: {url}",
-            reply_markup=reply_markup
-        )
+        lang = get_user_language(chat_id)
+        msg = get_message("list_created", lang, list_id=list_id, url=url)
+        await update.message.reply_text(msg, reply_markup=reply_markup)
     else:
-        await update.message.reply_text(
-            f"✅ הפריטים התווספו לרשימה {list_id}!\n📋 לצפייה ברשימה: {url}",
-            reply_markup=reply_markup
-        )
+        lang = get_user_language(chat_id)
+        msg = get_message("items_added", lang, list_id=list_id, url=url)
+        await update.message.reply_text(msg, reply_markup=reply_markup)
 
 async def handle_button_press(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
@@ -90,7 +94,7 @@ async def handle_button_press(update: Update, context: ContextTypes.DEFAULT_TYPE
         items = response.json().get("items", [])
 
         if not items:
-            await context.bot.send_message(chat_id=query.message.chat_id, text="❌ הרשימה ריקה או לא קיימת.")
+            await context.bot.send_message(chat_id=query.message.chat_id, text=get_message("list_empty", lang))
             return
 
         message = f"📋 רשימת קניות #{list_id}:\n"
@@ -110,27 +114,30 @@ async def handle_button_press(update: Update, context: ContextTypes.DEFAULT_TYPE
     elif data.startswith("deletelist:"):
         list_id = int(data.split(":")[1])
         requests.delete(f"{FLASK_API_URL}/delete_list/{list_id}")
-        await context.bot.send_message(chat_id=query.message.chat_id, text=f"🗑 הרשימה {list_id} נמחקה.")
+        await context.bot.send_message(chat_id=query.message.chat_id, text=get_message("list_deleted", lang, list_id=list_id))
 
     elif data.startswith("duplicatelist:"):
         original_id = int(data.split(":")[1])
+        chat_id=query.message.chat_id
+        lang = get_user_language(chat_id)
         response = requests.post(f"{FLASK_API_URL}/duplicate_list/{original_id}")
         data = response.json()
         new_id = data['new_id']
+        msg = get_message("list_duplicated", lang, list_id=new_id, url=url)
+
         url = f"https://maliknot.up.railway.app/list/{new_id}"
         keyboard = [[
-            InlineKeyboardButton("📋 הצג את הרשימה", callback_data=f"showlist:{new_id}"),
-            InlineKeyboardButton("🗑 מחק", callback_data=f"deletelist:{new_id}"),
-            InlineKeyboardButton("🔁 שכפל", callback_data=f"duplicatelist:{new_id}")
-        ],
-        [
-            InlineKeyboardButton("📊 היסטוריית רשימות", url=f"https://maliknot.up.railway.app/user_lists/{chat_id}")
+            InlineKeyboardButton(get_message("keyboard.view", lang), callback_data=f"showlist:{list_id}"),
+            InlineKeyboardButton(get_message("keyboard.delete", lang), callback_data=f"deletelist:{list_id}"),
+            InlineKeyboardButton(get_message("keyboard.duplicate", lang), callback_data=f"duplicatelist:{list_id}")
+        ], [
+            InlineKeyboardButton(get_message("keyboard.history", lang), url=f"https://maliknot.up.railway.app/user_lists/{chat_id}")
         ]]
         reply_markup = InlineKeyboardMarkup(keyboard)
 
         await context.bot.send_message(
             chat_id=query.message.chat_id,
-            text=f"🔁 הרשימה שוכפלה. מזהה חדש: {new_id} \n📋 לצפייה ברשימה: {url} ",
+            text=msg,
             reply_markup=reply_markup
         )
     

@@ -21,6 +21,8 @@ from flask import send_from_directory
 import nest_asyncio
 import asyncio
 
+from user_settings import get_user_language, save_user_language
+
 
 nest_asyncio.apply()
 
@@ -533,7 +535,6 @@ def delete_list(list_id):
     database_write("DELETE FROM lists WHERE id = ?", (list_id,))
     return jsonify({"success": True})
 
-
 #handel list chatid 
 @app.route("/api/duplicate_list/<int:list_id>", methods=["POST"])
 def duplicate_list(list_id):
@@ -590,6 +591,23 @@ def save_expense():
     print("✅ Purchase saved:", ok)
     return jsonify({'status': 'success', 'list_id': list_id})
 
+@app.route('/api/get_user_lang', methods=['GET'])
+def get_user_lang_api():
+    chat_id = request.args.get("chat_id")
+    if not chat_id:
+        return jsonify({"error": "Missing chat_id"}), 400
+    lang = get_user_language(chat_id)
+    return jsonify({"lang": lang or "en"})
+
+@app.route('/api/set_user_lang', methods=['POST'])
+def set_user_lang_api():
+    data = request.get_json()
+    chat_id = data.get("chat_id")
+    lang = data.get("lang")
+    if not chat_id or not lang:
+        return jsonify({"error": "Missing chat_id or lang"}), 400
+    save_user_language(chat_id, lang)
+    return jsonify({"status": "ok"})
 #EndRegion
 
 

@@ -1,0 +1,11 @@
+{
+  "list_created": "✅ Nouvelle liste créée ! {list_id}\n📋 Voir la liste : {url}",
+  "items_added": "✅ Articles ajoutés à la liste {list_id} !\n📋 Voir la liste : {url}",
+  "list_duplicated": "🔁 Liste dupliquée. ID nouveau : {list_id}\n📋 Voir la liste : {url}",
+  "list_empty": "❌ La liste est vide ou introuvable.",
+  "list_deleted": "🗑 Liste {list_id} supprimée.",
+  "keyboard.view": "📋 Voir la liste",
+  "keyboard.delete": "🗑 Supprimer",
+  "keyboard.duplicate": "🔁 Dupliquer",
+  "keyboard.history": "📊 Historique"
+}
