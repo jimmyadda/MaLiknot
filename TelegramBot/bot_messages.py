@@ -14,7 +14,7 @@ def load_translations(base_path="./messages"):
 
 # Load once on import
 TRANSLATIONS = load_translations("./messages")  
-
+print(TRANSLATIONS)
 # Function to access messages
 def get_message(key: str, lang: str = "en", **kwargs) -> str:
     lang = lang[:2] if lang else "en"

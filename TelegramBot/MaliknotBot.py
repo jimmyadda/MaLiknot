@@ -24,6 +24,7 @@ FLASK_API_URL = os.getenv("FLASK_API_URL")
 
 async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     lang = get_user_language(update.effective_chat.id)
+    print(lang)
     msg = get_message("start", lang)
     await update.message.reply_text(msg, parse_mode="Markdown")
 
