@@ -141,11 +141,11 @@ async def handle_button_press(update: Update, context: ContextTypes.DEFAULT_TYPE
 
         url = f"https://maliknot.up.railway.app/list/{new_id}"
         msg = get_message("list_duplicated", lang, list_id=new_id, url=url)
-
+        
         keyboard = [[
-            InlineKeyboardButton(get_message("keyboard.view", lang), callback_data=f"showlist:{list_id}"),
-            InlineKeyboardButton(get_message("keyboard.delete", lang), callback_data=f"deletelist:{list_id}"),
-            InlineKeyboardButton(get_message("keyboard.duplicate", lang), callback_data=f"duplicatelist:{list_id}")
+            InlineKeyboardButton(get_message("keyboard.view", lang), callback_data=f"showlist:{new_id}"),
+            InlineKeyboardButton(get_message("keyboard.delete", lang), callback_data=f"deletelist:{new_id}"),
+            InlineKeyboardButton(get_message("keyboard.duplicate", lang), callback_data=f"duplicatelist:{new_id}")
         ], [
             InlineKeyboardButton(get_message("keyboard.history", lang), url=f"https://maliknot.up.railway.app/user_lists/{chat_id}")
         ]]
