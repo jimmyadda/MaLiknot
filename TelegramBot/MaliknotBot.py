@@ -98,7 +98,9 @@ async def handle_button_press(update: Update, context: ContextTypes.DEFAULT_TYPE
     query = update.callback_query
     await query.answer()
     data = query.data 
-    chat_id = query.message.chat_id   
+    chat_id = query.message.chat_id 
+    lang = get_user_language(chat_id)
+      
     if data.startswith("showlist:"):
         list_id = int(data.split(":")[1])
         response = requests.get(f"{FLASK_API_URL}/get_list/{list_id}")
@@ -134,9 +136,9 @@ async def handle_button_press(update: Update, context: ContextTypes.DEFAULT_TYPE
         response = requests.post(f"{FLASK_API_URL}/duplicate_list/{original_id}")
         data = response.json()
         new_id = data['new_id']
+        url = f"https://maliknot.up.railway.app/list/{new_id}"
         msg = get_message("list_duplicated", lang, list_id=new_id, url=url)
 
-        url = f"https://maliknot.up.railway.app/list/{new_id}"
         keyboard = [[
             InlineKeyboardButton(get_message("keyboard.view", lang), callback_data=f"showlist:{list_id}"),
             InlineKeyboardButton(get_message("keyboard.delete", lang), callback_data=f"deletelist:{list_id}"),
