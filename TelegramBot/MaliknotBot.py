@@ -51,6 +51,7 @@ async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
 async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     chat_id = update.effective_chat.id
     text = update.message.text
+    lang = get_user_language(chat_id)
 
     lines = update.message.text.strip().splitlines()
 
