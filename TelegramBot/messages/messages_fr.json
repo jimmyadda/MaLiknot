@@ -8,5 +8,10 @@
   "keyboard.delete": "🗑 Supprimer",
   "keyboard.duplicate": "🔁 Dupliquer",
   "keyboard.history": "📊 Historique",
-  "start": "👋 Bienvenue !\n\n📋 Comment envoyer une liste de courses :\n\n1️⃣ *Première ligne* – nom de la liste (ex : `Courses du week-end:`)\n✏️ Le nom doit se terminer par `:` ou `-` pour être reconnu.\n\n2️⃣ *Deuxième ligne* – articles séparés par des virgules :\n`Lait 2, Pain tranché, Tomates 6`\n\n🛒 Après l'envoi, vous recevrez des boutons pour afficher, dupliquer ou supprimer la liste."
+  "start": "👋 Bienvenue !\n\n📋 Comment envoyer une liste de courses :\n\n1️⃣ *Première ligne* – nom de la liste (ex : `Courses du week-end:`)\n✏️ Le nom doit se terminer par `:` ou `-` pour être reconnu.\n\n2️⃣ *Deuxième ligne* – articles séparés par des virgules :\n`Lait 2, Pain tranché, Tomates 6`\n\n🛒 Après l'envoi, vous recevrez des boutons pour afficher, dupliquer ou supprimer la liste.",
+    "language_set": {
+    "he": "✅ השפה עודכנה לעברית.",
+    "en": "✅ Language set to English.",
+    "fr": "✅ La langue a été changée en français."
+  }
 }

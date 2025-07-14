@@ -9,7 +9,7 @@ from telegram.ext import (
 )
 import os
 
-from language_utils import get_user_language
+from language_utils import get_user_language, save_user_language
 from bot_messages import get_message
 
 
@@ -23,21 +23,30 @@ BOT_TOKEN = os.getenv("BOT_TOKEN")
 FLASK_API_URL = os.getenv("FLASK_API_URL")
 
 async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    lang = get_user_language(update.effective_chat.id)
-    print(lang)
-    msg = get_message("start", lang)
-    await update.message.reply_text(msg, parse_mode="Markdown")
+    chat_id = update.effective_chat.id
 
-    # await update.message.reply_text(
-    #     "📋 שלחו רשימת קניות:\n"
-    #     " שורה ראשונה – שם הרשימה (למשל: קניות לשבת :)\n"
-    #     "✏️ הקפד/י שהשם יסתיים בנקודתיים `:` או מקף `-`\n"
-    #     "כדי שנדע שזהו שם הרשימה.\n\n"
-    #     " שורה שנייה – פריטים מופרדים בפסיקים\n\n"
-    #     " דוגמה:\n"
-    #     "-קניות לסופש\n"
-    #     "חלב 2, לחם פרוס, עגבנייה 6"
-    # )
+    # Get current language or fallback
+    lang = get_user_language(chat_id) or update.effective_user.language_code or "en"
+    lang = lang[:2]
+
+    # Get localized message
+    message_text = get_message("start", lang)
+
+    # Add language selection buttons
+    keyboard = [
+        [
+            InlineKeyboardButton("🇮🇱 עברית", callback_data="lang:he"),
+            InlineKeyboardButton("🇬🇧 English", callback_data="lang:en"),
+            InlineKeyboardButton("🇫🇷 Français", callback_data="lang:fr")
+        ]
+    ]
+    reply_markup = InlineKeyboardMarkup(keyboard)
+
+    await update.message.reply_text(
+        message_text,
+        reply_markup=reply_markup,
+        parse_mode="Markdown"
+    )
 
 async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     chat_id = update.effective_chat.id
@@ -141,6 +150,16 @@ async def handle_button_press(update: Update, context: ContextTypes.DEFAULT_TYPE
             text=msg,
             reply_markup=reply_markup
         )
+    elif data.startswith("lang:"):
+        lang = data.split(":")[1]
+        chat_id = query.message.chat_id
+        save_user_language(chat_id, lang)
+
+        await context.bot.send_message(
+            chat_id=chat_id,
+            text=get_message("language_set", lang)
+        )
+        return    
     
 async def error(update: object, context: ContextTypes.DEFAULT_TYPE):
     print(f'⚠️ Error: {context.error}')
