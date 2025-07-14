@@ -9,9 +9,5 @@
   "keyboard.duplicate": "🔁 Duplicate",
   "keyboard.history": "📊 List History",
   "start": "👋 Welcome!\n\n📋 How to send a shopping list:\n\n1️⃣ *First line* – list name (e.g., `Weekend Shopping:`)\n✏️ Name must end with `:` or `-` so we know it's the title.\n\n2️⃣ *Second line* – items separated by commas:\n`Milk 2, Sliced bread, Tomatoes 6`\n\n🛒 After sending, you'll receive buttons to view, copy, or delete the list.",
-    "language_set": {
-    "he": "✅ השפה עודכנה לעברית.",
-    "en": "✅ Language set to English.",
-    "fr": "✅ La langue a été changée en français."
-  }
+  "language_set": "✅ Language set to English."
 }
