@@ -14,13 +14,19 @@ def load_translations(base_path="./messages"):
 
 # Load once on import
 TRANSLATIONS = load_translations("./messages")  
-print(TRANSLATIONS)
+
 # Function to access messages
 def get_message(key: str, lang: str = "en", **kwargs) -> str:
     lang = lang[:2] if lang else "en"
     fallback_lang = "en"
-    message_template = (
-        TRANSLATIONS.get(lang, {}).get(key)
-        or TRANSLATIONS.get(fallback_lang, {}).get(key, "")
-    )
-    return message_template.format(**kwargs)
+
+    # Step 1: get lang dictionary
+    lang_dict = TRANSLATIONS.get(lang, TRANSLATIONS.get(fallback_lang, {}))
+
+    # Step 2: get the message string
+    message_template = lang_dict.get(key, TRANSLATIONS.get(fallback_lang, {}).get(key, ""))
+
+    # Step 3: format
+    if isinstance(message_template, str):
+        return message_template.format(**kwargs)
+    return str(message_template)
