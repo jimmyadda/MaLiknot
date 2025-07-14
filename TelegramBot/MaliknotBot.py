@@ -10,7 +10,7 @@ from telegram.ext import (
 import os
 
 from language_utils import get_user_language
-from TelegramBot.messages import get_message
+from bot_messages import get_message
 
 
 
