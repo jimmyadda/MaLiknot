@@ -126,6 +126,7 @@ async def handle_button_press(update: Update, context: ContextTypes.DEFAULT_TYPE
 
     elif data.startswith("deletelist:"):
         list_id = int(data.split(":")[1])
+        print("list_id",list_id)
         requests.delete(f"{FLASK_API_URL}/delete_list/{list_id}")
         await context.bot.send_message(chat_id=query.message.chat_id, text=get_message("list_deleted", lang, list_id=list_id))
 
@@ -136,6 +137,8 @@ async def handle_button_press(update: Update, context: ContextTypes.DEFAULT_TYPE
         response = requests.post(f"{FLASK_API_URL}/duplicate_list/{original_id}")
         data = response.json()
         new_id = data['new_id']
+        print("new_id",new_id)
+
         url = f"https://maliknot.up.railway.app/list/{new_id}"
         msg = get_message("list_duplicated", lang, list_id=new_id, url=url)
 
