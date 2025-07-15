@@ -457,7 +457,7 @@ def add_list_from_telegram():
     items_text = data.get('items', '')
     chat_id = str(data.get('chat_id'))
     count = database_read("SELECT COUNT(*) as total FROM lists WHERE chat_id = ?", (chat_id,))[0]["total"]
-    list_name = f"{list_name_bot} {chat_id} #{count + 1}"
+    list_name = list_name_bot
     if not items_text:
         return jsonify({"error": "No items provided"}), 400
 
