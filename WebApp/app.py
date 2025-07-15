@@ -463,7 +463,6 @@ def add_list_from_telegram():
 
     item_details = []
 
-
     for item in items_text.split(','):
         item = item.strip()
 
