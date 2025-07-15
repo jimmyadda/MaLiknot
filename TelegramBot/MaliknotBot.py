@@ -165,6 +165,19 @@ async def handle_button_press(update: Update, context: ContextTypes.DEFAULT_TYPE
             chat_id=chat_id,
             text=get_message("language_set", lang)
         )
+        #Send  /start message in new language
+        await context.bot.send_message(
+            chat_id=chat_id,
+            text=get_message("start", lang),
+            parse_mode="Markdown",
+            reply_markup=InlineKeyboardMarkup([
+                [
+                    InlineKeyboardButton("🇮🇱 עברית", callback_data="lang:he"),
+                    InlineKeyboardButton("🇬🇧 English", callback_data="lang:en"),
+                    InlineKeyboardButton("🇫🇷 Français", callback_data="lang:fr")
+                ]
+            ])
+        )
         return    
     
 async def error(update: object, context: ContextTypes.DEFAULT_TYPE):
