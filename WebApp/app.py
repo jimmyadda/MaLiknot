@@ -453,12 +453,11 @@ def add_header(response):
 @app.route('/api/add_list_from_telegram', methods=['POST'])
 def add_list_from_telegram():
     data = request.get_json()
-    list_name = data.get('list_name', 'Telegram List')
+    list_name_bot = data.get('list_name', 'Telegram List')
     items_text = data.get('items', '')
     chat_id = str(data.get('chat_id'))
     count = database_read("SELECT COUNT(*) as total FROM lists WHERE chat_id = ?", (chat_id,))[0]["total"]
-    list_name = f"{list_name} {chat_id} #{count + 1}"
-
+    list_name = f"{list_name_bot} {chat_id} #{count + 1}"
     if not items_text:
         return jsonify({"error": "No items provided"}), 400
 
