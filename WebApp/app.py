@@ -362,7 +362,7 @@ def update_collected(item_id):
                         WHERE id = ?
                     """, (list_id,))
                     try:
-                        send_telegram_message(chat_id, f"✅ כל הפריטים ברשימה שלך נאספו בהצלחה! (#{list_id})")
+                        send_telegram_message(chat_id, key="list_completed", list_id=list_id)                        
                     except Exception as e:
                         print("⚠️ Telegram error:", e)
             print("✅ Returning collected status updated with list_complete =", list_complete)    
@@ -623,7 +623,7 @@ def check_and_notify_list_completion(list_id):
     if items and all(item['collected'] for item in items):
         database_write(""" UPDATE lists SET archived = 1, name = name || ' (Archived)'
                         WHERE id = ? """, (list_id,))
-        send_telegram_message(chat_id, f"✅ כל הפריטים ברשימה שלך נאספו בהצלחה! (#{list_id})")
+        send_telegram_message(chat_id, key="list_completed", list_id=list_id)        
 
 
 

@@ -115,7 +115,7 @@
                     </td>
                     <td data-label="מס׳">{{ row['id'] }}</td>
                     <td data-label="שם רשימה">{{ row['name'] }}</td>
-                    <td data-label="סכום">
+                    <td data-label="סכום" data-amount="{{ row['total_amount'] }}">
                         {% if row['total_amount'] %}
                             {{ "%.2f"|format(row['total_amount']) }}
                             {% set grand_total = grand_total + row['total_amount'] %}
@@ -139,7 +139,7 @@
     const rows = tableBody.querySelectorAll("tr");
     const totalCell = document.getElementById("totalSum");
 
-    // ✅ Separate: sum visible amounts
+    //  Separate: sum amounts
     function calculateVisibleTotal() {
         let total = 0;
         rows.forEach(row => {
@@ -148,7 +148,7 @@
 
             const cells = row.getElementsByTagName("td");
             if (cells.length >= 3) {
-                const value = cells[2].textContent.replace(",", "").trim();
+                const value = parseFloat(cells[3].dataset.amount || 0);
                 if (!isNaN(value) && value !== "-") {
                     total += parseFloat(value);
                 }
@@ -157,7 +157,7 @@
         totalCell.textContent = total.toFixed(2);
     }
 
-    // ✅ Filter table by search input
+    //  Filter table by search input
     function filterTableRows() {
         const filter = searchInput.value.trim().toLowerCase();
         rows.forEach(row => {

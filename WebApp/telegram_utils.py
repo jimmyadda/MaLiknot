@@ -1,10 +1,21 @@
 # telegram_utils.py
+import os
 import re
 import requests
+from dotenv import load_dotenv
 
-TELEGRAM_BOT_TOKEN = '7807618025:AAGKA3jxR2qFsA1F5yfkbaJuqJo40GW5kFs'
+from messages import get_message
+from user_settings import get_user_language
 
-def send_telegram_message(chat_id, message):
+load_dotenv()
+
+TELEGRAM_BOT_TOKEN = os.getenv("BOT_TOKEN")
+
+def send_telegram_message(chat_id, message=None, key=None, lang=None, **kwargs):
+    if not message and key:
+        lang = lang or get_user_language(chat_id)
+        message = get_message(key, lang, **kwargs)
+
     url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage"
     payload = {
         "chat_id": chat_id,
