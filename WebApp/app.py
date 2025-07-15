@@ -489,11 +489,9 @@ def add_list_from_telegram():
 
     print("item_details", item_details)
 
-    existing_list = database_read("SELECT id FROM lists WHERE name = ?", (list_name,))
+    existing_list = database_read("SELECT id FROM lists WHERE archived = 0 and chat_id = ?", (chat_id,))
     if existing_list:
-        print(existing_list)
         list_id = existing_list[0]['id']
-        print(list_id)
     else:
         database_write("INSERT INTO lists (name,chat_id) VALUES (?,?)", (list_name,chat_id))
         list_id = database_read("SELECT max(id) as id FROM lists")[0]['id']
