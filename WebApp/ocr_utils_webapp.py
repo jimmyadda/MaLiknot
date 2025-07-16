@@ -30,7 +30,12 @@ client = build_google_vision_client()
 
 def extract_text_from_image_bytes(image_bytes: bytes) -> str:
     image = vision.Image(content=image_bytes)
-    response = client.document_text_detection(image=image)
+
+    image_context = vision.ImageContext(
+        language_hints=["he"]  # ✅ ISO code for Hebrew
+    )
+
+    response = client.document_text_detection(image=image, image_context=image_context)
 
     if response.error.message:
         raise Exception(f"Google Vision Error: {response.error.message}")
