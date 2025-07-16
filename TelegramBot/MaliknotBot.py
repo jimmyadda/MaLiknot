@@ -18,6 +18,7 @@ from ocr_utils import extract_text_from_image_bytes
 logging.basicConfig(level=logging.INFO)
 load_dotenv()
 
+
 with open("sample.jpg", "rb") as f:
     print(extract_text_from_image_bytes(f.read()))
 
