@@ -182,11 +182,11 @@ async def handle_button_press(update: Update, context: ContextTypes.DEFAULT_TYPE
         return    
 
 async def handle_photo(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    chat_id = update.effective_chat.id
-    photo_file = await update.message.photo[-1].get_file()
-    image_bytes = await photo_file.download_as_bytearray()
-
     try:
+        photo_file = await update.message.photo[-1].get_file()
+        image_bytes = await photo_file.download_as_bytearray()
+
+        # OCR with Google Vision
         text = extract_text_from_image_bytes(image_bytes)
         if not text.strip():
             await update.message.reply_text("❌ לא זוהה טקסט בתמונה.")
@@ -194,12 +194,13 @@ async def handle_photo(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
         await update.message.reply_text(f"📄 הטקסט שזוהה:\n{text}")
 
-        # Reuse logic for adding the list
+        # Reuse the message parser
         update.message.text = text
         await handle_message(update, context)
 
     except Exception as e:
         await update.message.reply_text(f"⚠️ שגיאה בזיהוי טקסט: {e}")
+        print(f"⚠️ OCR error: {e}")
 
            
 async def error(update: object, context: ContextTypes.DEFAULT_TYPE):
