@@ -10,22 +10,34 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-# Load credentials from environment variable
-json_creds = os.getenv("GOOGLE_CREDENTIALS_JSON")
-if not json_creds:
-    raise EnvironmentError("❌ GOOGLE_CREDENTIALS_JSON not set")
+def _load_google_credentials():
+    path = "/tmp/gcloud-key.json"
 
-with open("/tmp/gcloud-key.json", "w") as f:
-    f.write(json_creds)
+    # Skip if the file already exists
+    if not os.path.exists(path):
+        raw = os.getenv("GOOGLE_CREDENTIALS_JSON")
+        if not raw:
+            raise EnvironmentError("❌ GOOGLE_CREDENTIALS_JSON is not set")
 
-# Set the environment variable so the Google client will use it
-os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = "/tmp/gcloud-key.json"
+        try:
+            creds = json.loads(raw)  # Validate JSON
+        except Exception as e:
+            raise ValueError(f"❌ Invalid JSON format: {e}")
+
+        with open(path, "w") as f:
+            f.write(json.dumps(creds))
+
+    os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = path
+
+_load_google_credentials()  # Run immediately when file is imported
 try:
     #credentials_info = json.loads(json_creds)
     #credentials = service_account.Credentials.from_service_account_info(credentials_info)
     #client = vision.ImageAnnotatorClient(credentials=credentials)
     client = vision.ImageAnnotatorClient()
     print("🔍 Google Vision Client:", client)
+    print("🔍 GOOGLE_APPLICATION_CREDENTIALS =", os.getenv("GOOGLE_APPLICATION_CREDENTIALS"))
+    print("📄 Credentials file exists:", os.path.exists(os.getenv("GOOGLE_APPLICATION_CREDENTIALS")))
 
 except Exception as e:
     raise RuntimeError(f"❌ Failed to initialize Google Vision client: {e}")
