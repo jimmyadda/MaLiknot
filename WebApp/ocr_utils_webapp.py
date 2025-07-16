@@ -13,6 +13,9 @@ load_dotenv()
 def _load_google_credentials():
     path = "/tmp/gcloud-key.json"
 
+    creds = json.loads(os.getenv("GOOGLE_CREDENTIALS_JSON"))
+    print("✅ Detected key for:", creds["client_email"])
+
     # Skip if the file already exists
     if not os.path.exists(path):
         raw = os.getenv("GOOGLE_CREDENTIALS_JSON")
