@@ -31,7 +31,7 @@ def preprocess_image_for_ocr(image_bytes: bytes) -> bytes:
     image = ImageOps.autocontrast(image)
 
     # Binarize (simple threshold)
-    threshold = 128
+    threshold = 100
     binarized = image.point(lambda x: 255 if x > threshold else 0, '1')
 
     # Convert to bytes
@@ -48,12 +48,8 @@ def extract_text_from_image_bytes(image_bytes: bytes) -> str:
     clean_image_bytes = preprocess_image_for_ocr(image_bytes)
 
     image = vision.Image(content=clean_image_bytes)
-
-    image_context = vision.ImageContext(
-        language_hints=["he"]  # Target Hebrew handwriting
-    )
-
-    response = client.document_text_detection(image=image, image_context=image_context)
+    context = vision.ImageContext(language_hints=["he"])
+    response = client.text_detection(image=image, image_context=context)
 
     if response.error.message:
         raise Exception(f"Google Vision Error: {response.error.message}")
