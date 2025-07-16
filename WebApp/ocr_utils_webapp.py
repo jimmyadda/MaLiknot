@@ -51,9 +51,14 @@ def extract_text_from_image_bytes(image_bytes: bytes) -> str:
     processed = preprocess_image_for_ocr(image_bytes)
     image = vision.Image(content=processed)
     context = vision.ImageContext(language_hints=["he"])
+    with open("/tmp/debug-upload.jpg", "wb") as f:
+        f.write(image_bytes)
 
+    with open("/tmp/debug-cleaned.jpg", "wb") as f:
+        f.write(processed)
     response = client.text_detection(image=image, image_context=context)
     raw_text = response.full_text_annotation.text.strip() if response.full_text_annotation.text else ""
+
 
     if not raw_text:
         return "[לא זוהה טקסט]"

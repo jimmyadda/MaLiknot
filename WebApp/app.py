@@ -674,6 +674,13 @@ def test_vision():
     except Exception as e:
         return f"❌ ERROR: {e}", 500
 
+@app.route("/debug-image/<name>")
+def debug_image(name):
+    path = f"/tmp/debug-{name}.jpg"
+    if not os.path.exists(path):
+        return f"{path} not found", 404
+
+    return send_file(path, mimetype="image/jpeg")
 
 def run_flask():
     port = int(os.environ.get("PORT", 5000))
