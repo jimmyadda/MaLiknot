@@ -18,6 +18,11 @@ from ocr_utils import extract_text_from_image_bytes
 logging.basicConfig(level=logging.INFO)
 load_dotenv()
 
+
+from ocr_utils import extract_text_from_image_bytes
+with open("sample.jpg", "rb") as f:
+    print(extract_text_from_image_bytes(f.read()))
+    
 BOT_TOKEN = os.getenv("BOT_TOKEN")
 FLASK_API_URL = os.getenv("FLASK_API_URL")
 
