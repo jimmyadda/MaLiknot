@@ -647,6 +647,7 @@ def debug_db_table(table):
     except Exception as e:
         return jsonify({"error": str(e)})
 
+
 @app.route("/test-vision")
 def test_vision():
     from ocr_utils_webapp import extract_text_from_image_bytes
