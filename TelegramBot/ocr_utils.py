@@ -26,6 +26,7 @@ except Exception as e:
 
 def extract_text_from_image_bytes(image_bytes: bytes) -> str:
     """Extract text from an image using Google Cloud Vision OCR."""
+    print("🔍 Google Vision Client:", client)
     image = vision.Image(content=image_bytes)
     response = client.document_text_detection(image=image)
 
