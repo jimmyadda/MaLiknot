@@ -187,7 +187,7 @@ async def handle_photo(update: Update, context: ContextTypes.DEFAULT_TYPE):
         image_bytes = await photo_file.download_as_bytearray()
 
         # OCR with Google Vision
-        text = extract_text_from_image_bytes(image_bytes)
+        text = extract_text_from_image_bytes(bytes(image_bytes))
         if not text.strip():
             await update.message.reply_text("❌ לא זוהה טקסט בתמונה.")
             return
