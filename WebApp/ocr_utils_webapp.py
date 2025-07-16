@@ -49,9 +49,22 @@ def extract_text_from_image_bytes(image_bytes: bytes) -> str:
 
     image = vision.Image(content=clean_image_bytes)
     context = vision.ImageContext(language_hints=["he"])
+
     response = client.text_detection(image=image, image_context=context)
 
     if response.error.message:
         raise Exception(f"Google Vision Error: {response.error.message}")
 
-    return response.full_text_annotation.text.strip()
+    # Try fallback using annotations (if full_text is empty)
+    full_text = response.full_text_annotation.text.strip()
+    if full_text:
+        return full_text
+
+    # Try line-by-line fallback
+    if response.text_annotations:
+        print("⚠️ full_text empty — using annotations[0]")
+        return response.text_annotations[0].description.strip()
+
+    # Nothing detected at all
+    print("❌ No text detected by Vision API")
+    return "[No text found]"
