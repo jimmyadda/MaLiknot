@@ -16,9 +16,7 @@ if not json_creds:
 
 try:
     credentials_info = json.loads(json_creds)
-    print("credentials_info" , credentials_info)
     credentials = service_account.Credentials.from_service_account_info(credentials_info)
-    print("credentials" , credentials)
     client = vision.ImageAnnotatorClient(credentials=credentials)
 
 except Exception as e:
@@ -27,6 +25,10 @@ except Exception as e:
 def extract_text_from_image_bytes(image_bytes: bytes) -> str:
     """Extract text from an image using Google Cloud Vision OCR."""
     print("🔍 Google Vision Client:", client)
+    print("Type:", credentials_info.get("type"))
+    print("Email:", credentials_info.get("client_email"))
+    print("Project ID:", credentials_info.get("project_id"))
+    print("Scopes:", credentials_info.get("scopes", "default"))
     image = vision.Image(content=image_bytes)
     response = client.document_text_detection(image=image)
 
