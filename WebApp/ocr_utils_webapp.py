@@ -22,11 +22,12 @@ client = build_google_vision_client()
 
 # Light preprocessing using PIL (no OpenCV)
 def preprocess_image_for_ocr(image_bytes: bytes) -> bytes:
-    image = Image.open(BytesIO(image_bytes)).convert("L")
-    image = ImageOps.autocontrast(image)
-    binarized = image.point(lambda x: 255 if x > 100 else 0, "1")
+    image = Image.open(BytesIO(image_bytes)).convert("L")  # grayscale
+    image = ImageOps.autocontrast(image, cutoff=2)        # boost contrast gently
+
+    # No binarization — just enhanced grayscale
     buffer = BytesIO()
-    binarized.convert("L").save(buffer, format="JPEG")
+    image.save(buffer, format="JPEG")
     return buffer.getvalue()
 
 # ChatGPT cleanup for OCR mess
