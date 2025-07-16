@@ -19,7 +19,7 @@ def build_google_vision_client():
     return vision.ImageAnnotatorClient(credentials=credentials)
 
 client = build_google_vision_client()
-
+client = openai.OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 # Light preprocessing using PIL (no OpenCV)
 def preprocess_image_for_ocr(image_bytes: bytes) -> bytes:
     image = Image.open(BytesIO(image_bytes)).convert("L")  # grayscale
@@ -38,14 +38,15 @@ def refine_ocr_with_chatgpt(ocr_text: str) -> str:
     )
     user_input = f"טקסט מהתמונה:\n{ocr_text}"
 
-    response = openai.ChatCompletion.create(
+    response = client.chat.completions.create(
         model="gpt-4",
         messages=[
             {"role": "system", "content": system_prompt},
             {"role": "user", "content": user_input}
         ]
     )
-    return response.choices[0].message["content"].strip()
+
+    return response.choices[0].message.content.strip()
 
 # Final OCR function
 def extract_text_from_image_bytes(image_bytes: bytes) -> str:
