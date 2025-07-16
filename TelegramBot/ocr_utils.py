@@ -15,16 +15,18 @@ json_creds = os.getenv("GOOGLE_CREDENTIALS_JSON")
 if not json_creds:
     raise EnvironmentError("❌ GOOGLE_CREDENTIALS_JSON not set")
 
+with open("/tmp/gcloud-key.json", "w") as f:
+    f.write(json_creds)
+
+# Set the environment variable so the Google client will use it
+os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = "/tmp/gcloud-key.json"
 try:
-    credentials_info = json.loads(json_creds)
-    credentials = service_account.Credentials.from_service_account_info(credentials_info)
-    client = vision.ImageAnnotatorClient(credentials=credentials)
-    
+    #credentials_info = json.loads(json_creds)
+    #credentials = service_account.Credentials.from_service_account_info(credentials_info)
+    #client = vision.ImageAnnotatorClient(credentials=credentials)
+    client = vision.ImageAnnotatorClient()
     print("🔍 Google Vision Client:", client)
-    print("Type:", credentials_info.get("type"))
-    print("Email:", credentials_info.get("client_email"))
-    print("Project ID:", credentials_info.get("project_id"))
-    print("Scopes:", credentials_info.get("scopes", "default"))
+
 except Exception as e:
     raise RuntimeError(f"❌ Failed to initialize Google Vision client: {e}")
 
