@@ -243,7 +243,7 @@ function updateCollected(checkbox) {
         if (data.message === 'Collected status updated') {
             $.notify("פריט נאסף", "success");
 
-            // ✅ Check if all items were collected — prompt for total expense
+            // Check if all items were collected — prompt for total expense
             if (data.list_complete) {
                 let amount = prompt("✅ כל הפריטים נאספו! כמה שילמת בסך הכול?");
                 if (amount && !isNaN(amount)) {
@@ -270,7 +270,7 @@ function updateCollected(checkbox) {
                 }
             } else {
                 // Not complete — just reload normally
-                setTimeout(() => window.location.reload(), 1500);
+                //setTimeout(() => window.location.reload(), 1500);
             }
         } else {
             $.notify("⚠️ שגיאה בשמירה", "error");
@@ -327,15 +327,6 @@ function updateCollected(checkbox) {
         //deleteitemfromlist...
         DelProductFromList(this);
     });
-
-        //filter
-/*         $("#productFilter").on("keyup", function() {
-                var value = $(this).val().toLowerCase();
-                $(".card").filter(function() {
-                    $(this).toggle($(this).text().toLowerCase().indexOf(value) > -1);
-                });
-        }); */
-
 
     $("#productFilter").on("keyup", function () {
       

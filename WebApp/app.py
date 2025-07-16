@@ -252,6 +252,19 @@ def delete_product(product_id):
 
 @app.route("/list/<int:list_id>", methods=["GET", "POST"])
 def view_list(list_id):
+    list_info = database_read("SELECT name, chat_id FROM lists WHERE id = ?", (list_id,))
+    if not list_info:
+        return "List not found", 404
+    list_chat_id = list_info[0]['chat_id']    
+    # If coming from Telegram: extract via list name
+    if 'from_telegram' in request.args:
+        current_chat_id = extract_chat_id(list_info[0]['name'])
+    else:
+        return "Access restricted", 403  
+
+    if current_chat_id != list_chat_id:
+        return "Unauthorized", 403 
+      
     #items  in list
     list_items_data = []  # make this a list
     items = database_read(f"select * from product_in_list where list_id ='{list_id}' order by collected desc;")
@@ -262,9 +275,9 @@ def view_list(list_id):
             item_data =  database_read(f"select pl.*,p.* from products p inner JOIN product_in_list  pl on pl.product_id = p.id where p.id ='{product_id}' and list_id='{list_id}' order by collected desc ;")
             if item_data:
                 list_items_data.append(item_data[0])
-    print(list_id)
+
     list_name_obj = database_read(f"select name from lists where id ='{list_id}';")
-    print(list_name_obj)
+
     if list_name_obj:
         list_name = list_name_obj[0]['name']
     else:
@@ -494,7 +507,7 @@ def add_list_from_telegram():
         list_id = existing_list[0]['id']
     else:
         database_write("INSERT INTO lists (name,chat_id) VALUES (?,?)", (list_name,chat_id))
-        list_id = database_read("SELECT max(id) as id FROM lists")[0]['id']
+        list_id = database_read("SELECT max(id) as id FROM lists where chat_id=?",(chat_id))[0]['id']   # List per user
 
     for item in item_details:
         product = item['product']

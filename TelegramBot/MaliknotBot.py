@@ -11,6 +11,7 @@ import os
 
 from language_utils import get_user_language, save_user_language
 from bot_messages import get_message
+from ocr_utils import extract_text_from_image_bytes
 
 
 
@@ -21,6 +22,7 @@ load_dotenv()
 
 BOT_TOKEN = os.getenv("BOT_TOKEN")
 FLASK_API_URL = os.getenv("FLASK_API_URL")
+
 
 async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     chat_id = update.effective_chat.id
@@ -74,14 +76,14 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     list_id = data['list_id']
     created = data.get('created', False)
-    url = f"https://maliknot.up.railway.app/list/{list_id}"
+    url = f"https://maliknot.up.railway.app/list/{list_id}?from_telegram=true"
 
     keyboard = [[
         InlineKeyboardButton(get_message("keyboard.view", lang), callback_data=f"showlist:{list_id}"),
         InlineKeyboardButton(get_message("keyboard.delete", lang), callback_data=f"deletelist:{list_id}"),
         InlineKeyboardButton(get_message("keyboard.duplicate", lang), callback_data=f"duplicatelist:{list_id}")
     ], [
-        InlineKeyboardButton(get_message("keyboard.history", lang), url=f"https://maliknot.up.railway.app/user_lists/{chat_id}")
+        InlineKeyboardButton(get_message("keyboard.history", lang), url=f"https://maliknot.up.railway.app/user_lists/{chat_id}?from_telegram=true")
     ]]
     reply_markup = InlineKeyboardMarkup(keyboard)
 
@@ -137,9 +139,8 @@ async def handle_button_press(update: Update, context: ContextTypes.DEFAULT_TYPE
         response = requests.post(f"{FLASK_API_URL}/duplicate_list/{original_id}")
         data = response.json()
         new_id = data['new_id']
-        print("new_id",new_id)
 
-        url = f"https://maliknot.up.railway.app/list/{new_id}"
+        url = f"https://maliknot.up.railway.app/list/{new_id}?from_telegram=true"
         msg = get_message("list_duplicated", lang, list_id=new_id, url=url)
         
         keyboard = [[
@@ -147,7 +148,7 @@ async def handle_button_press(update: Update, context: ContextTypes.DEFAULT_TYPE
             InlineKeyboardButton(get_message("keyboard.delete", lang), callback_data=f"deletelist:{new_id}"),
             InlineKeyboardButton(get_message("keyboard.duplicate", lang), callback_data=f"duplicatelist:{new_id}")
         ], [
-            InlineKeyboardButton(get_message("keyboard.history", lang), url=f"https://maliknot.up.railway.app/user_lists/{chat_id}")
+            InlineKeyboardButton(get_message("keyboard.history", lang), url=f"https://maliknot.up.railway.app/user_lists/{chat_id}?from_telegram=true")
         ]]
         reply_markup = InlineKeyboardMarkup(keyboard)
 
@@ -179,7 +180,27 @@ async def handle_button_press(update: Update, context: ContextTypes.DEFAULT_TYPE
             ])
         )
         return    
-    
+
+async def handle_photo(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    chat_id = update.effective_chat.id
+    photo_file = await update.message.photo[-1].get_file()
+    image_bytes = await photo_file.download_as_bytearray()
+
+    try:
+        text = extract_text_from_image_bytes(image_bytes)
+        if not text.strip():
+            await update.message.reply_text("❌ לא זוהה טקסט בתמונה.")
+            return
+
+        await update.message.reply_text(f"📄 הטקסט שזוהה:\n{text}")
+
+        # Reuse logic for adding the list
+        update.message.text = text
+        await handle_message(update, context)
+
+    except Exception as e:
+        await update.message.reply_text(f"⚠️ שגיאה בזיהוי טקסט: {e}")
+            
 async def error(update: object, context: ContextTypes.DEFAULT_TYPE):
     print(f'⚠️ Error: {context.error}')
 
@@ -190,6 +211,7 @@ if __name__ == "__main__":
     #this line for the expense handler (filter number)
     #application.add_handler(MessageHandler(filters.TEXT & filters.Regex(r'^\d+(\.\d+)?$'), handle_expense_sum))
     application.add_handler(CallbackQueryHandler(handle_button_press))
+    application.add_handler(MessageHandler(filters.PHOTO, handle_photo))
     application.add_error_handler(error)
 
     print("🤖 Telegram bot polling started")
