@@ -668,7 +668,7 @@ def test_vision():
     raw_bytes = file.read()
 
     try:
-        from ocr_utils import extract_text_from_image_bytes
+        from ocr_utils_webapp import extract_text_from_image_bytes
         text = extract_text_from_image_bytes(raw_bytes)
         return f"<pre>{text}</pre>", 200, {"Content-Type": "text/html; charset=utf-8"}
     except Exception as e:
