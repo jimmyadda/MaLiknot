@@ -19,8 +19,8 @@ logging.basicConfig(level=logging.INFO)
 load_dotenv()
 
 
-with open("sample.jpg", "rb") as f:
-    print(extract_text_from_image_bytes(f.read()))
+""" with open("sample.jpg", "rb") as f:
+    print(extract_text_from_image_bytes(f.read())) """
 
 BOT_TOKEN = os.getenv("BOT_TOKEN")
 FLASK_API_URL = os.getenv("FLASK_API_URL")
