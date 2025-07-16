@@ -16,8 +16,11 @@ if not json_creds:
 
 try:
     credentials_info = json.loads(json_creds)
+    print("credentials_info" , credentials_info)
     credentials = service_account.Credentials.from_service_account_info(credentials_info)
+    print("credentials" , credentials)
     client = vision.ImageAnnotatorClient(credentials=credentials)
+
 except Exception as e:
     raise RuntimeError(f"❌ Failed to initialize Google Vision client: {e}")
 
