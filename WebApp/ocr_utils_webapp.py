@@ -2,7 +2,6 @@ import json
 import os
 from google.cloud import vision
 from google.oauth2 import service_account
-import cv2
 import numpy as np
 from PIL import Image
 from io import BytesIO
