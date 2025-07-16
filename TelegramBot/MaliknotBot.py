@@ -18,9 +18,7 @@ from ocr_utils import extract_text_from_image_bytes
 logging.basicConfig(level=logging.INFO)
 load_dotenv()
 
-
-import os, json
-json.loads(os.getenv("GOOGLE_CREDENTIALS_JSON"))
+print(os.getenv("GOOGLE_CREDENTIALS_JSON"))
 
 BOT_TOKEN = os.getenv("BOT_TOKEN")
 FLASK_API_URL = os.getenv("FLASK_API_URL")
