@@ -7,7 +7,6 @@ from PIL import Image
 from io import BytesIO
 from dotenv import load_dotenv
 
-
 load_dotenv()
 # Load credentials
 json_creds = os.environ.get("GOOGLE_CREDENTIALS_JSON")

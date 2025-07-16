@@ -252,6 +252,7 @@ def delete_product(product_id):
 
 @app.route("/list/<int:list_id>", methods=["GET", "POST"])
 def view_list(list_id):
+    
     list_info = database_read("SELECT name, chat_id FROM lists WHERE id = ?", (list_id,))
     if not list_info:
         return "List not found", 404
@@ -264,8 +265,8 @@ def view_list(list_id):
 
     if current_chat_id != list_chat_id:
         return "Unauthorized", 403 
-      
-            
+
+
     #items  in list
     list_items_data = []  # make this a list
     items = database_read(f"select * from product_in_list where list_id ='{list_id}' order by collected desc;")
