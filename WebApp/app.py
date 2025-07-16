@@ -649,20 +649,31 @@ def debug_db_table(table):
         return jsonify({"error": str(e)})
 
 
-@app.route("/test-vision", methods=["POST"])
+@app.route("/test-vision", methods=["GET", "POST"])
 def test_vision():
+    if request.method == "GET":
+        return '''
+            <form method="POST" enctype="multipart/form-data">
+                <input type="file" name="file" accept="image/*">
+                <button type="submit">Upload</button>
+            </form>'''
+
     if "file" not in request.files:
         return "Please upload a file.", 400
 
     file = request.files["file"]
+    if file.filename == "" or not file.filename.lower().endswith((".jpg", ".jpeg", ".png")):
+        return "❌ Invalid file type.", 400
+
     raw_bytes = file.read()
 
     try:
         from ocr_utils import extract_text_from_image_bytes
         text = extract_text_from_image_bytes(raw_bytes)
-        return f"<pre>{text}</pre>"
+        return f"<pre>{text}</pre>", 200, {"Content-Type": "text/html; charset=utf-8"}
     except Exception as e:
         return f"❌ ERROR: {e}", 500
+
 
 def run_flask():
     port = int(os.environ.get("PORT", 5000))
