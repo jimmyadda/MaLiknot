@@ -639,6 +639,7 @@ def check_and_notify_list_completion(list_id):
 
 
 
+
 @app.route('/debug/db/<table>')
 def debug_db_table(table):
     try:
