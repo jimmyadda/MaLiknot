@@ -22,34 +22,22 @@ def build_google_vision_client():
 
     return vision.ImageAnnotatorClient(credentials=credentials)
 
-# ✅ Preprocess image before OCR (improves handwriting recognition)
 def preprocess_image_for_ocr(image_bytes: bytes) -> bytes:
-    # Load image from bytes
-    image = Image.open(BytesIO(image_bytes)).convert("RGB")
-    open_cv_image = np.array(image)
-    open_cv_image = open_cv_image[:, :, ::-1].copy()  # Convert RGB to BGR for OpenCV
+    from PIL import ImageOps
 
-    # Convert to grayscale
-    gray = cv2.cvtColor(open_cv_image, cv2.COLOR_BGR2GRAY)
+    # Load and convert to grayscale
+    image = Image.open(BytesIO(image_bytes)).convert("L")  # "L" = grayscale
 
-    # Apply Gaussian blur
-    blurred = cv2.GaussianBlur(gray, (5, 5), 0)
+    # Enhance contrast
+    image = ImageOps.autocontrast(image)
 
-    # Adaptive thresholding (for uneven lighting/handwriting)
-    thresh = cv2.adaptiveThreshold(
-        blurred, 255,
-        cv2.ADAPTIVE_THRESH_GAUSSIAN_C,
-        cv2.THRESH_BINARY_INV,
-        11, 2
-    )
+    # Binarize (simple threshold)
+    threshold = 128
+    binarized = image.point(lambda x: 255 if x > threshold else 0, '1')
 
-    # Invert for OCR: black text on white background
-    inverted = cv2.bitwise_not(thresh)
-
-    # Convert back to bytes
-    processed_pil = Image.fromarray(inverted)
+    # Convert to bytes
     buffer = BytesIO()
-    processed_pil.save(buffer, format="JPEG")
+    binarized.convert("L").save(buffer, format="JPEG")
     return buffer.getvalue()
 
 # Initialize Vision client once
