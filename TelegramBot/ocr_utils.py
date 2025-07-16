@@ -7,6 +7,7 @@ from PIL import Image
 from io import BytesIO
 from dotenv import load_dotenv
 
+
 load_dotenv()
 
 # Load credentials from environment variable
@@ -18,17 +19,18 @@ try:
     credentials_info = json.loads(json_creds)
     credentials = service_account.Credentials.from_service_account_info(credentials_info)
     client = vision.ImageAnnotatorClient(credentials=credentials)
-
-except Exception as e:
-    raise RuntimeError(f"❌ Failed to initialize Google Vision client: {e}")
-
-def extract_text_from_image_bytes(image_bytes: bytes) -> str:
-    """Extract text from an image using Google Cloud Vision OCR."""
+    
     print("🔍 Google Vision Client:", client)
     print("Type:", credentials_info.get("type"))
     print("Email:", credentials_info.get("client_email"))
     print("Project ID:", credentials_info.get("project_id"))
     print("Scopes:", credentials_info.get("scopes", "default"))
+except Exception as e:
+    raise RuntimeError(f"❌ Failed to initialize Google Vision client: {e}")
+
+def extract_text_from_image_bytes(image_bytes: bytes) -> str:
+    """Extract text from an image using Google Cloud Vision OCR."""
+
     image = vision.Image(content=image_bytes)
     response = client.document_text_detection(image=image)
 
