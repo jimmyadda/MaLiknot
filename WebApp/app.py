@@ -646,7 +646,18 @@ def debug_db_table(table):
         return jsonify(rows)
     except Exception as e:
         return jsonify({"error": str(e)})
-                       
+
+@app.route("/test-vision")
+def test_vision():
+    from ocr_utils import extract_text_from_image_bytes
+
+    try:
+        with open("sample.jpg", "rb") as f:
+            text = extract_text_from_image_bytes(f.read())
+        return text
+    except Exception as e:
+        return f"❌ ERROR: {e}", 500 
+
 def run_flask():
     port = int(os.environ.get("PORT", 5000))
     app.run(host="0.0.0.0", port=port)
