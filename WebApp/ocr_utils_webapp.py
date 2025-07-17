@@ -16,7 +16,7 @@ def extract_text_from_image_bytes(image_bytes: bytes) -> str:
 
     try:
         response = openai_client.chat.completions.create(
-            model="gpt-3.5-turbo",  # חשוב: ודא שיש לך גישה למודל הזה
+            model="gpt-4o",  # חשוב: ודא שיש לך גישה למודל הזה
             messages=[
                 {
                     "role": "system",
