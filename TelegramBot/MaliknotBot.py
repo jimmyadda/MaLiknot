@@ -1,3 +1,4 @@
+import asyncio
 import logging
 import re
 from dotenv import load_dotenv
@@ -219,6 +220,7 @@ async def handle_photo(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await update.message.reply_text(result, parse_mode=None)
 
         # ✅ Allow message now
+        await asyncio.sleep(0.5)
         context.user_data["ocr_ready"] = True
 
     except Exception as e:
