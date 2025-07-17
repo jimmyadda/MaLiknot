@@ -198,8 +198,9 @@ async def handle_photo(update: Update, context: ContextTypes.DEFAULT_TYPE):
     photo = update.message.photo[-1]
     file = await photo.get_file()
     image_bytes = await file.download_as_bytearray()
-
-    lang = context.user_data.get("lang", update.effective_user.language_code[:2])
+    
+    chat_id = update.effective_chat.id 
+    lang = get_user_language(chat_id)
     context.user_data["ocr_ready"] = False  # block premature messages
 
     await update.message.reply_text(get_message("ocr_processing", lang))
@@ -222,8 +223,6 @@ async def handle_photo(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     except Exception as e:
         await update.message.reply_text(get_message("ocr_error", lang, error=str(e)))
-
-
            
 async def error(update: object, context: ContextTypes.DEFAULT_TYPE):
     print(f'⚠️ Error: {context.error}')
