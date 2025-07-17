@@ -184,6 +184,7 @@ async def handle_button_press(update: Update, context: ContextTypes.DEFAULT_TYPE
         return    
 
 
+
 async def handle_photo(update: Update, context: ContextTypes.DEFAULT_TYPE):
     photo = update.message.photo[-1]
     file = await photo.get_file()
@@ -196,15 +197,21 @@ async def handle_photo(update: Update, context: ContextTypes.DEFAULT_TYPE):
     try:
         result = extract_text_from_image_bytes(bytes(image_bytes))
 
-        # שמירת הטקסט לזיכרון זמני – לא חובה באפשרות 2
+        if not result.strip():
+            await update.message.reply_text(get_message("ocr_no_text", lang))
+            return
+
+        # שמור בזיכרון למקרה שנרצה פיצ'ר "השתמש בטקסט האחרון"
         context.user_data["last_ocr_text"] = result
 
-        await update.message.reply_text(
-            get_message("ocr_result_editable", lang=lang, result=result)
-        )
+        # הודעת הסבר
+        await update.message.reply_text(get_message("ocr_copy_instruction", lang))
+
+        # הטקסט המזוהה בלבד – בהודעה נפרדת ונקייה
+        await update.message.reply_text(result, parse_mode=None)
 
     except Exception as e:
-        await update.message.reply_text(get_message("ocr_error", lang=lang, error=str(e)))
+        await update.message.reply_text(get_message("ocr_error", lang, error=str(e)))
 
 
            
