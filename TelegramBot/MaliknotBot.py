@@ -57,24 +57,31 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     text = update.message.text
     lang = get_user_language(chat_id)
 
+    # ✅ Prevent premature message if OCR still loading
+    if context.user_data.get("ocr_ready") is False:
+        await update.message.reply_text(get_message("ocr_too_fast", lang))
+        return
+    
     lines = update.message.text.strip().splitlines()
 
-    # אם יש לפחות שתי שורות והשורה הראשונה מסתיימת בתו מפריד – זו שם הרשימה
+    # אם יש לפחות שתי שורות והשורה הראשונה מסתיימת בתו מפריד – זו שם הרשימה 
     if len(lines) >= 2 and re.match(r".*[:|\-–—]$", lines[0]):
-        name_part = re.sub(r"[:|\-–—]$", "", lines[0]).strip()  # remove the final colon or dash
+        name_part = re.sub(r"[:|\-–—]$", "", lines[0]).strip()
         list_name = f"[{chat_id}] {name_part}"
         items_text = "\n".join(lines[1:]).strip()
     else:
         list_name = f"[{chat_id}] Telegram List"
-        items_text = update.message.text.strip()
-    
-    items_text = re.sub(r"\s*,\s*", ",", items_text)
+        items_text = text.strip()
+
+    # ✅ Normalize input
+    items_text = normalize_text(items_text)
 
     payload = {
         'list_name': list_name,
         'items': items_text,
         'chat_id': chat_id
     }
+
     response = requests.post(f"{FLASK_API_URL}/add_list_from_telegram", json=payload)
     data = response.json()
 
@@ -91,14 +98,16 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     ]]
     reply_markup = InlineKeyboardMarkup(keyboard)
 
+
     if created:
-        lang = get_user_language(chat_id)
         msg = get_message("list_created", lang, list_id=list_id, url=url)
-        await update.message.reply_text(msg, reply_markup=reply_markup)
     else:
-        lang = get_user_language(chat_id)
         msg = get_message("items_added", lang, list_id=list_id, url=url)
-        await update.message.reply_text(msg, reply_markup=reply_markup)
+    
+    await update.message.reply_text(msg, reply_markup=reply_markup)
+
+    # ✅ Reset the flag after successful processing
+    context.user_data["ocr_ready"] = False
 
 async def handle_button_press(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
@@ -185,14 +194,13 @@ async def handle_button_press(update: Update, context: ContextTypes.DEFAULT_TYPE
         )
         return    
 
-
-
 async def handle_photo(update: Update, context: ContextTypes.DEFAULT_TYPE):
     photo = update.message.photo[-1]
     file = await photo.get_file()
     image_bytes = await file.download_as_bytearray()
 
     lang = context.user_data.get("lang", update.effective_user.language_code[:2])
+    context.user_data["ocr_ready"] = False  # block premature messages
 
     await update.message.reply_text(get_message("ocr_processing", lang))
 
@@ -203,14 +211,14 @@ async def handle_photo(update: Update, context: ContextTypes.DEFAULT_TYPE):
             await update.message.reply_text(get_message("ocr_no_text", lang))
             return
 
-        # שמור בזיכרון למקרה שנרצה פיצ'ר "השתמש בטקסט האחרון"
         context.user_data["last_ocr_text"] = result
 
-        # הודעת הסבר
+        # ✅ Inform and show result (cleanly)
         await update.message.reply_text(get_message("ocr_copy_instruction", lang))
-
-        # הטקסט המזוהה בלבד – בהודעה נפרדת ונקייה
         await update.message.reply_text(result, parse_mode=None)
+
+        # ✅ Allow message now
+        context.user_data["ocr_ready"] = True
 
     except Exception as e:
         await update.message.reply_text(get_message("ocr_error", lang, error=str(e)))
@@ -219,6 +227,15 @@ async def handle_photo(update: Update, context: ContextTypes.DEFAULT_TYPE):
            
 async def error(update: object, context: ContextTypes.DEFAULT_TYPE):
     print(f'⚠️ Error: {context.error}')
+
+def normalize_text(text: str) -> str:
+    import unicodedata
+    text = unicodedata.normalize("NFKC", text)
+    text = text.replace("،", ",").replace("，", ",").replace("﹐", ",")
+    text = re.sub(r"[\u200c\u200d\u202c\u202d\uFEFF\u00A0]", "", text)
+    text = re.sub(r"\s*,\s*", ",", text)
+    return text.strip()
+
 
 if __name__ == "__main__":
     application = ApplicationBuilder().token(BOT_TOKEN).build()

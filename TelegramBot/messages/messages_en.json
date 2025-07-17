@@ -13,5 +13,6 @@
     "ocr_processing": "🧠 Analyzing the text from your image...",
   "ocr_copy_instruction": "📋 Detected text – copy, edit, and send:",
   "ocr_error": "❌ Error analyzing image: {error}",
-  "ocr_no_text": "⚠️ No text detected in the image."
+  "ocr_no_text": "⚠️ No text detected in the image.",
+  "ocr_too_fast": "⏳ Please wait a moment — the bot is still processing the image."
 }
