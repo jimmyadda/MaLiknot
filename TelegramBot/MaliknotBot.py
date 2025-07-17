@@ -67,6 +67,8 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     else:
         list_name = f"[{chat_id}] Telegram List"
         items_text = update.message.text.strip()
+    
+    items_text = re.sub(r"\s*,\s*", ",", items_text)
 
     payload = {
         'list_name': list_name,
