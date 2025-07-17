@@ -8,7 +8,9 @@
   "keyboard.delete": "🗑 Delete",
   "keyboard.duplicate": "🔁 Duplicate",
   "keyboard.history": "📊 List History",
-  "start": "👋 Welcome!\n\n📋 How to send a shopping list:\n\n1️⃣ *First line* – list name (e.g., `Weekend Shopping:`)\n✏️ Name must end with `:` or `-` so we know it's the title.\n\n2️⃣ *Second line* – items separated by commas:\n`Milk 2, Sliced bread, Tomatoes 6`\n\n🛒 After sending, you'll receive buttons to view, copy, or delete the list.",
-  "language_set": "✅ Language set to English.",
-    "list_completed": "✅ All items in your list have been collected! (#{list_id})"
+  "start": "👋 Welcome!\n\n📋 Here's how to send a shopping list:\n\n1️⃣ *First line* – The list name (e.g., `Shabbat shopping:`)\n✏️ The name must end with `:` or `-` to be recognized.\n\n2️⃣ *Second line* – Items separated by commas:\n`2 milk, sliced bread, 6 tomatoes`\n\n🖼️ You can also send a *photo of a handwritten or printed list* – the bot will recognize the text and return a draft you can edit and send.\n\n🛒 After sending, you'll receive links to manage your list: view, duplicate, or delete.",  "language_set": "✅ Language set to English.",
+  "list_completed": "✅ All items in your list have been collected! (#{list_id})",
+    "ocr_processing": "🧠 Analyzing the text from your image...",
+  "ocr_result_editable": "📋 Here's the detected text:\n\n{result}\n\n✏️ You can edit and send it again – the bot will treat it as a shopping list.",
+  "ocr_error": "❌ Error analyzing image: {error}"
 }

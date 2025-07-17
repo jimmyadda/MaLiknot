@@ -183,26 +183,29 @@ async def handle_button_press(update: Update, context: ContextTypes.DEFAULT_TYPE
         )
         return    
 
+
 async def handle_photo(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    photo = update.message.photo[-1]
+    file = await photo.get_file()
+    image_bytes = await file.download_as_bytearray()
+
+    lang = context.user_data.get("lang", update.effective_user.language_code[:2])
+
+    await update.message.reply_text(get_message("ocr_processing", lang))
+
     try:
-        photo_file = await update.message.photo[-1].get_file()
-        image_bytes = await photo_file.download_as_bytearray()
+        result = extract_text_from_image_bytes(bytes(image_bytes))
 
-        # OCR with Google Vision
-        text = extract_text_from_image_bytes(bytes(image_bytes))
-        if not text.strip():
-            await update.message.reply_text("❌ לא זוהה טקסט בתמונה.")
-            return
+        # שמירת הטקסט לזיכרון זמני – לא חובה באפשרות 2
+        context.user_data["last_ocr_text"] = result
 
-        await update.message.reply_text(f"📄 הטקסט שזוהה:\n{text}")
-
-        # Reuse the message parser
-        update.message.text = text
-        await handle_message(update, context)
+        await update.message.reply_text(
+            get_message("ocr_result_editable", lang=lang, result=result)
+        )
 
     except Exception as e:
-        await update.message.reply_text(f"⚠️ שגיאה בזיהוי טקסט: {e}")
-        print(f"⚠️ OCR error: {e}")
+        await update.message.reply_text(get_message("ocr_error", lang=lang, error=str(e)))
+
 
            
 async def error(update: object, context: ContextTypes.DEFAULT_TYPE):

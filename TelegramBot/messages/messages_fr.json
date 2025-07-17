@@ -8,8 +8,9 @@
   "keyboard.delete": "🗑 Supprimer",
   "keyboard.duplicate": "🔁 Dupliquer",
   "keyboard.history": "📊 Historique",
-  "start": "👋 Bienvenue !\n\n📋 Comment envoyer une liste de courses :\n\n1️⃣ *Première ligne* – nom de la liste (ex : `Courses du week-end:`)\n✏️ Le nom doit se terminer par `:` ou `-` pour être reconnu.\n\n2️⃣ *Deuxième ligne* – articles séparés par des virgules :\n`Lait 2, Pain tranché, Tomates 6`\n\n🛒 Après l'envoi, vous recevrez des boutons pour afficher, dupliquer ou supprimer la liste.",
-   "language_set": "✅ La langue a été changée en français.",
-     "list_completed": "✅ Tous les articles de votre liste ont été collectés ! (#{list_id})"
+  "start": "👋 Bienvenue !\n\n📋 Voici comment envoyer une liste de courses :\n\n1️⃣ *Première ligne* – Nom de la liste (par exemple : `Courses pour Shabbat:`)\n✏️ Le nom doit se terminer par `:` ou `-` pour être reconnu.\n\n2️⃣ *Deuxième ligne* – Articles séparés par des virgules :\n`2 lait, pain tranché, 6 tomates`\n\n🖼️ Vous pouvez aussi envoyer une *photo d'une liste manuscrite ou imprimée* – le bot détectera le texte et vous renverra un brouillon à modifier et envoyer.\n\n🛒 Après l'envoi, vous recevrez des liens pour gérer la liste : voir, dupliquer ou supprimer.",     "list_completed": "✅ Tous les articles de votre liste ont été collectés ! (#{list_id})",
+       "ocr_processing": "🧠 Analyse du texte à partir de l'image...",
+  "ocr_result_editable": "📋 Texte détecté :\n\n{result}\n\n✏️ Vous pouvez le modifier et le renvoyer – le bot l’interprétera comme une liste de courses.",
+  "ocr_error": "❌ Erreur lors de l'analyse de l'image : {error}"
 
 }
