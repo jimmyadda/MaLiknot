@@ -1,4 +1,4 @@
-MaLiknot – Smart Grocery List App
+🛒 MaLiknot – Smart Grocery List App
 
 All-in-One Web + Telegram Bot for Managing Your Shopping Lists
 🌐 LIVE DEMO
@@ -6,14 +6,16 @@ All-in-One Web + Telegram Bot for Managing Your Shopping Lists
 Web App: https://maliknot.up.railway.app
 Demo User Login:
 
-    Username: admin
-
-    Password: pass
+Username: admin
+Password: pass
 
 🤖 TELEGRAM BOT
 
 Bot Username: @Maliknot_bot
 🔧 BOT FEATURES
+
+You can now use text or image to create grocery lists!
+📝 Text Input
 
 Send a message like:
 
@@ -35,7 +37,29 @@ The bot will:
 
         🔁 “Duplicate” button
 
-All lists are saved to the web app and synced across both interfaces.
+🖼 Image Input – OCR Support (New!)
+
+You can now upload a handwritten or typed shopping list as an image:
+
+Steps:
+
+    Upload a photo to the bot
+
+    The bot will:
+
+        🔍 Extract Hebrew text using ChatGPT OCR
+
+        ✂️ Clean up the results (e.g., "קפה, סוכר, לחם...")
+
+        📋 Send back the detected items
+
+    You can:
+
+        ✏️ Edit the text manually if needed
+
+        📤 Send it again as a message — the bot will create your list!
+
+⚠️ Tip: Wait ~2 seconds after receiving the OCR result before sending your message to ensure the bot is ready.
 💻 WEB APP FEATURES (Flask + SQLite)
 
     📋 View all grocery lists
@@ -63,12 +87,12 @@ All lists are saved to the web app and synced across both interfaces.
 🚀 TRY IT OUT
 
     Visit: https://maliknot.up.railway.app
+
     Login with:
 
-        Username: admin
+    Username: admin
+    Password: pass
 
-        Password: pass
+    Or try it via Telegram: @Maliknot_bot
 
-    Or send a list to: @Maliknot_bot
-[בעברית](WebApp/ReadMe_Heb.txt)
-                           
+📄 בעברית
