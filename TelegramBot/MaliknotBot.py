@@ -1,6 +1,7 @@
 import asyncio
 import logging
 import re
+import time
 from dotenv import load_dotenv
 import requests
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
@@ -55,17 +56,18 @@ async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     chat_id = update.effective_chat.id
-    text = update.message.text
     lang = get_user_language(chat_id)
+    now = time.time()
+    ready_at = context.user_data.get("ocr_ready_at", 0)
 
-    # ✅ Prevent premature message if OCR still loading
-    if context.user_data.get("ocr_ready") is False:
+    # ✅ Block too-fast replies only if OCR just happened
+    if now < ready_at:
         await update.message.reply_text(get_message("ocr_too_fast", lang))
         return
-    
-    lines = update.message.text.strip().splitlines()
 
-    # אם יש לפחות שתי שורות והשורה הראשונה מסתיימת בתו מפריד – זו שם הרשימה 
+    text = update.message.text
+    lines = text.strip().splitlines()
+
     if len(lines) >= 2 and re.match(r".*[:|\-–—]$", lines[0]):
         name_part = re.sub(r"[:|\-–—]$", "", lines[0]).strip()
         list_name = f"[{chat_id}] {name_part}"
@@ -74,20 +76,20 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
         list_name = f"[{chat_id}] Telegram List"
         items_text = text.strip()
 
-    # ✅ Normalize input
     items_text = normalize_text(items_text)
 
     payload = {
-        'list_name': list_name,
-        'items': items_text,
-        'chat_id': chat_id
+        "list_name": list_name,
+        "items": items_text,
+        "chat_id": chat_id
     }
 
+    import requests
     response = requests.post(f"{FLASK_API_URL}/add_list_from_telegram", json=payload)
     data = response.json()
 
-    list_id = data['list_id']
-    created = data.get('created', False)
+    list_id = data["list_id"]
+    created = data.get("created", False)
     url = f"https://maliknot.up.railway.app/list/{list_id}?from_telegram=true"
 
     keyboard = [[
@@ -97,18 +99,16 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     ], [
         InlineKeyboardButton(get_message("keyboard.history", lang), url=f"https://maliknot.up.railway.app/user_lists/{chat_id}?from_telegram=true")
     ]]
+
     reply_markup = InlineKeyboardMarkup(keyboard)
 
+    msg = (
+        get_message("list_created", lang, list_id=list_id, url=url)
+        if created else
+        get_message("items_added", lang, list_id=list_id, url=url)
+    )
 
-    if created:
-        msg = get_message("list_created", lang, list_id=list_id, url=url)
-    else:
-        msg = get_message("items_added", lang, list_id=list_id, url=url)
-    
     await update.message.reply_text(msg, reply_markup=reply_markup)
-
-    # ✅ Reset the flag after successful processing
-    context.user_data["ocr_ready"] = False
 
 async def handle_button_press(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
@@ -195,14 +195,14 @@ async def handle_button_press(update: Update, context: ContextTypes.DEFAULT_TYPE
         )
         return    
 
+
 async def handle_photo(update: Update, context: ContextTypes.DEFAULT_TYPE):
     photo = update.message.photo[-1]
     file = await photo.get_file()
     image_bytes = await file.download_as_bytearray()
-    
-    chat_id = update.effective_chat.id 
+
+    chat_id = update.effective_chat.id
     lang = get_user_language(chat_id)
-    context.user_data["ocr_ready"] = False  # block premature messages
 
     await update.message.reply_text(get_message("ocr_processing", lang))
 
@@ -215,14 +215,11 @@ async def handle_photo(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
         context.user_data["last_ocr_text"] = result
 
-        # ✅ Inform and show result (cleanly)
         await update.message.reply_text(get_message("ocr_copy_instruction", lang))
         await update.message.reply_text(result, parse_mode=None)
 
-        # ✅ Allow message now
-        await asyncio.sleep(0.5)
-        context.user_data["ocr_ready"] = True
-
+        # ✅ Allow user to respond after 2 seconds
+        context.user_data["ocr_ready_at"] = time.time() + 2
     except Exception as e:
         await update.message.reply_text(get_message("ocr_error", lang, error=str(e)))
            
