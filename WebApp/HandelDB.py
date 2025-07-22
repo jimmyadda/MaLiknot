@@ -10,35 +10,37 @@ from config import DATABASE_PATH
 database_filename = connection = DATABASE_PATH
 
 
-def database_write(sql,data=None):
-    connection = sqlite3.connect(database_filename)
-    connection.row_factory = sqlite3.Row
-    db = connection.cursor()
-    row_affected = 0
-    if data:
-        row_affected = db.execute(sql, data).rowcount
-    else:
-        row_affected = db.execute(sql).rowcount
-    connection.commit()
-    db.close()
-    connection.close()
+# Set this once during app startup
+def enable_wal_mode():
+    with sqlite3.connect(database_filename, timeout=10) as conn:
+        conn.execute("PRAGMA journal_mode=WAL")
 
-    return row_affected
+def database_write(sql, data=None):
+    with sqlite3.connect(database_filename, timeout=10) as connection:
+        connection.row_factory = sqlite3.Row
+        cursor = connection.cursor()
 
-def database_read(sql,data=None):
-    connection = sqlite3.connect(database_filename)
-    connection.row_factory = sqlite3.Row
-    db = connection.cursor()
+        if data:
+            result = cursor.execute(sql, data)
+        else:
+            result = cursor.execute(sql)
 
-    if data:
-         db.execute(sql, data)
-    else:
-         db.execute(sql)
-    records = db.fetchall()    
-    rows = [dict(record) for record in records]
-    db.close()
-    connection.close()
-    return rows
+        connection.commit()
+        return result.rowcount
+    
+
+def database_read(sql, data=None):
+    with sqlite3.connect(database_filename, timeout=10) as connection:
+        connection.row_factory = sqlite3.Row
+        cursor = connection.cursor()
+
+        if data:
+            cursor.execute(sql, data)
+        else:
+            cursor.execute(sql)
+
+        records = cursor.fetchall()
+        return [dict(record) for record in records]
 
 def create_account(userpassed):
     userid = userpassed['userid'] #input("userid: ")

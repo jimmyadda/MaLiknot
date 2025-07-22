@@ -11,7 +11,7 @@ from flask import Flask, jsonify, send_file,flash,g,render_template,request,redi
 import flask_login
 import requests
 from grocery_list import create_db
-from HandelDB import database_read,database_write,create_account
+from HandelDB import database_read,database_write,create_account,enable_wal_mode
 import uuid
 import logging
 import hashlib
@@ -32,7 +32,7 @@ app.secret_key = "dsvnjksnvjksdvnsjkvnsjvsvs"
 
 WEBHOOK_URL = 'https://maliknot1bot.pythonanywhere.com/telegram'  # or your correct route
 create_db()
-
+enable_wal_mode()
 
 grocery_lists = {}  # Dictionary to hold lists: { "List Name": [ {name, collected}, ... ] }
 #Logs
@@ -523,10 +523,26 @@ def add_list_from_telegram():
             database_write("INSERT INTO products (name) VALUES (?)", (product,))
             product_id = database_read("SELECT max(id) as id FROM products")[0]['id']
 
-        database_write("""
-            INSERT INTO product_in_list (list_id, product_id, quantity, collected, notes)
-            VALUES (?, ?, ?, ?, ?)
-        """, (list_id, product_id, quantity, 0, note))
+        # Check if item already exists in the list
+        existing = database_read("""
+            SELECT id, quantity FROM product_in_list
+            WHERE list_id = ? AND product_id = ?
+        """, (list_id, product_id))
+
+        if existing:
+            # ✅ Item exists → update quantity
+            existing_qty = existing[0]["quantity"]
+            database_write("""
+                UPDATE product_in_list
+                SET quantity = ?
+                WHERE id = ?
+                and list_id = ?
+            """, (existing_qty + quantity, existing[0]["id"],list_id))
+        else:
+            database_write("""
+                INSERT INTO product_in_list (list_id, product_id, quantity, collected, notes)
+                VALUES (?, ?, ?, ?, ?)
+            """, (list_id, product_id, quantity, 0, note))
 
     return jsonify({"status": "success", "list_id": list_id})
 
@@ -620,8 +636,6 @@ def set_user_lang_api():
     save_user_language(chat_id, lang)
     return jsonify({"status": "ok"})
 #EndRegion
-
-
 
 def check_and_notify_list_completion(list_id):
     # Skip if already archived

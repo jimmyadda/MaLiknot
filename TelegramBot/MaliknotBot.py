@@ -125,8 +125,8 @@ async def handle_button_press(update: Update, context: ContextTypes.DEFAULT_TYPE
         if not items:
             await context.bot.send_message(chat_id=query.message.chat_id, text=get_message("list_empty", lang))
             return
-
-        message = f"📋 רשימת קניות #{list_id}:\n"
+        message_title = get_message("list_header", lang, list_id=list_id)
+        message = message_title
         for item in items:
             name = item['name']
             quantity = item['quantity']
@@ -143,8 +143,10 @@ async def handle_button_press(update: Update, context: ContextTypes.DEFAULT_TYPE
     elif data.startswith("deletelist:"):
         list_id = int(data.split(":")[1])
         print("list_id",list_id)
-        requests.delete(f"{FLASK_API_URL}/delete_list/{list_id}")
-        await context.bot.send_message(chat_id=query.message.chat_id, text=get_message("list_deleted", lang, list_id=list_id))
+        print("chat_id",chat_id)
+        ok = requests.delete(f"{FLASK_API_URL}/delete_list/{list_id}")
+        if ok:
+            await context.bot.send_message(chat_id=chat_id, text=get_message("list_deleted", lang, list_id=list_id))
 
     elif data.startswith("duplicatelist:"):
         original_id = int(data.split(":")[1])
@@ -194,7 +196,6 @@ async def handle_button_press(update: Update, context: ContextTypes.DEFAULT_TYPE
             ])
         )
         return    
-
 
 async def handle_photo(update: Update, context: ContextTypes.DEFAULT_TYPE):
     photo = update.message.photo[-1]
