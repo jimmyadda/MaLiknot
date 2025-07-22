@@ -17,5 +17,5 @@
   "ocr_error": "❌ שגיאה בזיהוי התמונה: {error}",
   "ocr_no_text": "⚠️ לא זוהה טקסט בתמונה.",
   "ocr_too_fast": "⏳ רגע... תן לבוט להשלים את זיהוי הטקסט מהתמונה.",
-  "confirm_all_collected": "האם אספת את כל {{quantity}} היחידות של פריט זה?"
+  "confirm_all_collected": "האם אספת את כל {quantity} היחידות של פריט זה?"
 }

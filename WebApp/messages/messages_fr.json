@@ -17,6 +17,6 @@
   "ocr_error": "❌ Erreur lors de l'analyse de l'image : {error}",
   "ocr_no_text": "⚠️ Aucun texte détecté dans l'image.",
   "ocr_too_fast": "⏳ Un instant... le bot traite encore l'image.",
-  "confirm_all_collected": "Avez-vous collecté les {{quantity}} unités de cet article ?"
+  "confirm_all_collected": "Avez-vous collecté les {quantity} unités de cet article ?"
 
 }
