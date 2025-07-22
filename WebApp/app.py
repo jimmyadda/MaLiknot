@@ -377,7 +377,8 @@ def update_collected(item_id):
                         WHERE id = ?
                     """, (list_id,))
                     try:
-                        send_telegram_message(chat_id, key="list_completed", list_id=list_id)                        
+                        print("update_collected",chat_id,list_id)
+                        send_telegram_message(chat_id, key="list_completed", list_id=list_id)                       
                     except Exception as e:
                         print("⚠️ Telegram error:", e)
             print("✅ Returning collected status updated with list_complete =", list_complete)    
@@ -642,8 +643,9 @@ def check_and_notify_list_completion(list_id):
     already = database_read("SELECT archived, chat_id FROM lists WHERE id = ?", (list_id,))
     if not already or already[0]['archived'] == 1:
         return
-
     chat_id = already[0]['chat_id']
+    print("testcompleted 'check_and_notify_list_completion' for:",chat_id)
+
     items = database_read("SELECT collected FROM product_in_list WHERE list_id = ?", (list_id,))
     if items and all(item['collected'] for item in items):
         database_write(""" UPDATE lists SET archived = 1, name = name || ' (Archived)'
