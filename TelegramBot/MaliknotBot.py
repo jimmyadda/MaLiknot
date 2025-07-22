@@ -173,6 +173,7 @@ async def handle_button_press(update: Update, context: ContextTypes.DEFAULT_TYPE
             text=msg,
             reply_markup=reply_markup
         )
+    
     elif data.startswith("lang:"):
         lang = data.split(":")[1]
         chat_id = query.message.chat_id
