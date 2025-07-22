@@ -16,6 +16,7 @@ def send_telegram_message(chat_id, message=None, key=None, lang=None, **kwargs):
         lang = lang or get_user_language(chat_id)
         message = get_message(key, lang, **kwargs)
         print("send_telegram_message",key, lang,message)
+
         if not message:
             print(f"❌ No message found for key={key}, lang={lang}, chat_id={chat_id}")
             return {"error": "no_message"}
@@ -29,6 +30,7 @@ def send_telegram_message(chat_id, message=None, key=None, lang=None, **kwargs):
         "text": message
     }
     response = requests.post(url, json=payload)
+    print("response : ",response , url, payload)
     return response.json()
 
 def extract_chat_id(list_name):
