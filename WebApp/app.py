@@ -265,6 +265,10 @@ def view_list(list_id):
 
     if current_chat_id != list_chat_id:
         return "Unauthorized", 403 
+    
+
+    lang = get_user_language(list_chat_id) or "en"
+
 
 
     #items  in list
@@ -286,7 +290,7 @@ def view_list(list_id):
         list_name = " "
     items_data = database_read(f"select p.*,cat.name as catName from products p left JOIN categories cat on category_id = cat.id")
     categories =  database_read(f"select * from categories order by name;")   
-    return render_template("list.html", list_id=list_id,list_data=list_data, items=list_items_data,list_name=list_name,all_items=items_data,categories=categories)
+    return render_template("list.html", list_id=list_id,list_data=list_data, items=list_items_data,list_name=list_name,all_items=items_data,categories=categories,lang=lang)
 
 @app.route('/delete_List/<int:List_id>', methods=['DELETE', 'POST'])
 @flask_login.login_required

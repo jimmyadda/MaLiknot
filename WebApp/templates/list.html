@@ -114,7 +114,16 @@
           {{ loop.index }}. &nbsp; {{ item['name'] }}  &nbsp; {% if item.collected %}<strong>(נאסף)</strong>{% endif %}   <br>Quantity: {{ item['quantity'] }}  &nbsp;  Price: {{ item['price'] }}  &nbsp;  Notes:  {% if item.notes %}<strong>{{ item['notes']}}</strong>{% endif %}          
         </span>
           <div class="form-check">
-            <input class="form-check-input position-static" data-item-id="{{ item['product_id'] }}" type="checkbox" id="blankCheckbox" onchange="updateCollected(this)" value="option1" {% if item.collected %}checked{% endif %} >
+            <input class="form-check-input position-static" 
+                   data-item-id="{{ item['product_id'] }}" 
+                   type="checkbox" 
+                   id="blankCheckbox" 
+                   onchange="updateCollected(this)" 
+                   value="option1" 
+                   data-quantity="{{ item.quantity }}"
+                   data-confirm-message="{{ get_message('confirm_all_collected', lang) }}"
+                   {% if item.collected %}checked{% endif %} >
+                   
             <span class="">|</span> <!-- separator -->
               <button id="del_prod" class="delete-btn" title="remove product from list"><i class="fa fa-trash"></i></button>
           </div>
@@ -224,7 +233,15 @@ function updateCollected(checkbox) {
     const itemId = checkbox.dataset.itemId;
     const collected = checkbox.checked ? 1 : 0;
     const listid = document.querySelector('#listid').textContent;
-
+    const quantity = parseInt(checkbox.dataset.quantity || "1");
+    // Ask if all collected 
+    if (collected && quantity > 1) {
+        const confirmMsg = checkbox.dataset.confirmMessage || "Have you collected all units of this item?";
+        if (!confirm(confirmMsg.replace("{{quantity}}", quantity))) {
+            checkbox.checked = false;
+            return;
+        }
+    }
     fetch(`/update_collected/${itemId}`, {
         method: 'POST',
         headers: {
@@ -258,9 +275,9 @@ function updateCollected(checkbox) {
                     })
                     .then(resp => resp.json())
                     .then(json => {
-                        alert(json.message || "✅ סכום נשמר!");
+                        //alert(json.message || "✅ סכום נשמר!");
                         // reload after saving
-                        //setTimeout(() => window.location.reload(), 1500);
+                        setTimeout(() => window.location.reload(), 1500);
                     })
                     .catch(err => alert("⚠️ שגיאה בשמירת הסכום."));
                 } else {
