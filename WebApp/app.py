@@ -15,6 +15,7 @@ from HandelDB import database_read,database_write,create_account,enable_wal_mode
 import uuid
 import logging
 import hashlib
+from messages import get_message
 from telegram_utils import send_telegram_message, extract_chat_id
 #from internal_logic  import add_list_from_telegram # type: ignore
 from flask import send_from_directory
@@ -268,7 +269,7 @@ def view_list(list_id):
     
 
     lang = get_user_language(list_chat_id) or "en"
-
+    confirm_message = get_message("confirm_all_collected", lang)
 
 
     #items  in list
