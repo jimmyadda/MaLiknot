@@ -510,8 +510,8 @@ def add_list_from_telegram():
         list_id = existing_list[0]['id']
     else:
         database_write("INSERT INTO lists (name,chat_id) VALUES (?,?)", (list_name,chat_id))
-        list_id = database_read("SELECT max(id) as id FROM lists where chat_id=?",(chat_id))[0]['id']   # List per user
-
+        list_id = database_read("SELECT max(id) as id FROM lists WHERE chat_id = ?", (chat_id,))[0]['id']
+        
     for item in item_details:
         product = item['product']
         quantity = item['quantity']
