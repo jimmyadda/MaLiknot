@@ -234,6 +234,8 @@ function updateCollected(checkbox) {
     const collected = checkbox.checked ? 1 : 0;
     const listid = document.querySelector('#listid').textContent;
     const quantity = parseInt(checkbox.dataset.quantity || "1");
+    const confirmMessage = checkbox.dataset.confirmMessage.replace("{{quantity}}", quantity);
+
     // Ask if all collected 
 
     if (quantity > 1 && checkbox.checked) {
