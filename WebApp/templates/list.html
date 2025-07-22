@@ -242,7 +242,6 @@ function updateCollected(checkbox) {
         console.log("📦 Server response:", data);  // 👈 log it
         if (data.message === 'Collected status updated') {
             $.notify("פריט נאסף", "success");
-
             // Check if all items were collected — prompt for total expense
             if (data.list_complete) {
                 let amount = prompt("✅ כל הפריטים נאספו! כמה שילמת בסך הכול?");
@@ -318,7 +317,6 @@ function updateCollected(checkbox) {
           setTimeout(function (){ window.location.href = window.location.href; }, 2000); 
         }); 
     }
-
 
   $(document).ready(function() {
 
