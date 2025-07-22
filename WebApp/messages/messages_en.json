@@ -1,5 +1,6 @@
 {
   "list_created": "✅ New list created! {list_id}\n📋 View list: {url}",
+    "list_header": "📋 Grocery List #{list_id}:\n",
   "items_added": "✅ Items added to list {list_id}!\n📋 View list: {url}",
   "list_duplicated": "🔁 List duplicated. New ID: {list_id}\n📋 View list: {url}",
   "list_empty": "❌ The list is empty or does not exist.",
@@ -15,5 +16,6 @@
   "ocr_copy_instruction": "📋 Detected text – copy, edit, and send:",
   "ocr_error": "❌ Error analyzing image: {error}",
   "ocr_no_text": "⚠️ No text detected in the image.",
-  "ocr_too_fast": "⏳ Please wait a moment — the bot is still processing the image."
+  "ocr_too_fast": "⏳ Please wait a moment — the bot is still processing the image.",
+  "confirm_all_collected": "האם אספת את כל {{quantity}} היחידות של פריט זה?"
 }
