@@ -269,7 +269,8 @@ def view_list(list_id):
     
 
     lang = get_user_language(list_chat_id) or "en"
-    confirm_message = get_message("confirm_all_collected", lang)
+    confirm_message = get_message("confirm_all_collected", lang, quantity="{quantity}")
+    print(confirm_message)
 
 
     #items  in list
