@@ -121,9 +121,9 @@
                    onchange="updateCollected(this)" 
                    value="option1" 
                    data-quantity="{{ item.quantity }}"
-                   data-confirm-message="{{ get_message('confirm_all_collected', lang) }}"
+                   data-confirm-message="{{ confirm_message }}"
                    {% if item.collected %}checked{% endif %} >
-                   
+
             <span class="">|</span> <!-- separator -->
               <button id="del_prod" class="delete-btn" title="remove product from list"><i class="fa fa-trash"></i></button>
           </div>
@@ -235,9 +235,10 @@ function updateCollected(checkbox) {
     const listid = document.querySelector('#listid').textContent;
     const quantity = parseInt(checkbox.dataset.quantity || "1");
     // Ask if all collected 
-    if (collected && quantity > 1) {
-        const confirmMsg = checkbox.dataset.confirmMessage || "Have you collected all units of this item?";
-        if (!confirm(confirmMsg.replace("{{quantity}}", quantity))) {
+
+    if (quantity > 1 && checkbox.checked) {
+        const ok = confirm(confirmMessage);
+        if (!ok) {
             checkbox.checked = false;
             return;
         }
