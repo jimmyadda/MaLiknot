@@ -273,7 +273,7 @@ def view_list(list_id):
 
     #items  in list
     list_items_data = []  # make this a list
-    items = database_read(f"select * from product_in_list where list_id ='{list_id}' order by collected desc;")
+    items = database_read(f"select * from product_in_list where list_id ='{list_id}' order by collected asc;")
     list_data = database_read(f"select * from product_in_list where list_id ='{list_id}';")
     if items:
         for item in items:
@@ -375,8 +375,8 @@ def update_collected(item_id):
                         UPDATE lists
                         SET archived = 1,
                             name = CASE
-                                WHEN name LIKE '%(Archived)' THEN name
-                                ELSE name || ' (Archived)'
+                                WHEN name LIKE '%(Archived%' THEN name
+                                ELSE name || ' (Archived ' || strftime('%Y%m%d%H%M%S', 'now') || ')'
                             END
                         WHERE id = ?
                     """, (list_id,))
