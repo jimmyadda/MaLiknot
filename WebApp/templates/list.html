@@ -184,6 +184,11 @@
 </div>
 
 <script>
+  const lang = "{{ lang }}";
+</script>
+
+<script>
+
 
 const notifyMessages = {
     he: {
@@ -208,7 +213,7 @@ const notifyMessages = {
       amount_saved: "✅ Amount saved!"
     }
   };
-  const lang = "{{ lang }}";  // from Flask context
+
 
   function addProductToList(anchor) {
     //get clicked card data
