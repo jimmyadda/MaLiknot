@@ -185,6 +185,31 @@
 
 <script>
 
+const notifyMessages = {
+    he: {
+      item_collected: "פריט נאסף",
+      list_complete_prompt: "✅ כל הפריטים נאספו! כמה שילמת בסך הכול?",
+      error_saving: "⚠️ שגיאה בשמירה",
+      server_error: "⚠️ שגיאה בשרת",
+      amount_saved: "✅ סכום נשמר!"
+    },
+    fr: {
+      item_collected: "Article collecté",
+      list_complete_prompt: "✅ Tous les articles sont collectés ! Combien avez-vous payé au total ?",
+      error_saving: "⚠️ Erreur lors de l'enregistrement",
+      server_error: "⚠️ Erreur serveur",
+      amount_saved: "✅ Montant enregistré !"
+    },
+    en: {
+      item_collected: "Item collected",
+      list_complete_prompt: "✅ All items collected! How much did you pay in total?",
+      error_saving: "⚠️ Error saving",
+      server_error: "⚠️ Server error",
+      amount_saved: "✅ Amount saved!"
+    }
+  };
+  const lang = "{{ lang }}";  // from Flask context
+
   function addProductToList(anchor) {
     //get clicked card data
     const card = anchor.closest('.card-body'); // or any container class
@@ -232,77 +257,70 @@
   }
 
   function updateCollected(checkbox) {
-    const itemId = checkbox.dataset.itemId;
-    const collected = checkbox.checked ? 1 : 0;
-    const listid = document.querySelector('#listid').textContent;
-    const quantity = parseInt(checkbox.dataset.quantity || "1");
-    const confirmMessage = checkbox.dataset.confirmMessage.replace("{quantity}", quantity);
+      const itemId = checkbox.dataset.itemId;
+      const collected = checkbox.checked ? 1 : 0;
+      const listid = document.querySelector('#listid').textContent;
+      const quantity = parseInt(checkbox.dataset.quantity || "1");
+      const confirmMessage = checkbox.dataset.confirmMessage.replace("{quantity}", quantity);
 
-    // Ask if all collected 
+      // Ask if all collected 
 
-    if (quantity > 1 && checkbox.checked) {
-        const ok = confirm(confirmMessage);
-        if (!ok) {
-            checkbox.checked = false;
-            return;
-        }
-    }
-    fetch(`/update_collected/${itemId}`, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'X-Requested-With': 'XMLHttpRequest'
-        },
-        body: JSON.stringify({
-            list_id: listid,
-            product_id: itemId,
-            collected: collected
-        })
-    })
-    .then(response => response.json())
-    .then(data => {
-        console.log("📦 Server response:", data);  // 👈 log it
-        if (data.message === 'Collected status updated') {
-            $.notify("פריט נאסף", "success");
-            // Check if all items were collected — prompt for total expense
-            if (data.list_complete) {
-                let amount = prompt("✅ כל הפריטים נאספו! כמה שילמת בסך הכול?");
-                if (amount && !isNaN(amount)) {
-                    fetch('/save_expense', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json'
-                        },
-                        body: JSON.stringify({
-                            list_id: listid,
-                            amount: parseFloat(amount)
-                        })
-                    })
-                    .then(resp => resp.json())
-                    .then(json => {
-                        //alert(json.message || "✅ סכום נשמר!");
-                        // reload after saving
-                        setTimeout(() => window.location.reload(), 1500);
-                    })
-                    .catch(err => alert("⚠️ שגיאה בשמירת הסכום."));
-                } else {
-                    // Reload anyway if user cancels
-                    setTimeout(() => window.location.reload(), 1500);
-                }
-            } else {
-                // Not complete — just reload normally
-                //setTimeout(() => window.location.reload(), 1500);
-            }
-        } else {
-            $.notify("⚠️ שגיאה בשמירה", "error");
-            //setTimeout(() => window.location.reload(), 1500);
-        }
-    })
-    .catch(err => {
-        console.error("Error:", err);
-        $.notify("⚠️ שגיאה בשרת", "error");
-        setTimeout(() => window.location.reload(), 1500);
-    });
+      if (quantity > 1 && checkbox.checked) {
+          const ok = confirm(confirmMessage);
+          if (!ok) {
+              checkbox.checked = false;
+              return;
+          }
+      }
+      fetch(`/update_collected/${itemId}`, {
+          method: 'POST',
+          headers: {
+              'Content-Type': 'application/json',
+              'X-Requested-With': 'XMLHttpRequest'
+          },
+          body: JSON.stringify({
+              list_id: listid,
+              product_id: itemId,
+              collected: collected
+          })
+      })
+      .then(response => response.json())
+      .then(data => {
+      console.log("📦 Server response:", data);
+      const msg = notifyMessages[lang];
+
+      if (data.message === 'Collected status updated') {
+          $.notify(msg.item_collected, "success");
+
+          if (data.list_complete) {
+              let amount = prompt(msg.list_complete_prompt);
+              if (amount && !isNaN(amount)) {
+                  fetch('/save_expense', {
+                      method: 'POST',
+                      headers: { 'Content-Type': 'application/json' },
+                      body: JSON.stringify({ list_id: listid, amount: parseFloat(amount) })
+                  })
+                  .then(resp => resp.json())
+                  .then(json => {
+                      $.notify(msg.amount_saved, "success");
+                      setTimeout(() => window.location.reload(), 1500);
+                  })
+                  .catch(err => {
+                      alert(msg.error_saving);
+                  });
+              } else {
+                  setTimeout(() => window.location.reload(), 1500);
+              }
+          }
+      } else {
+          $.notify(msg.error_saving, "error");
+      }
+  })
+  .catch(err => {
+      console.error("Error:", err);
+      $.notify(notifyMessages[lang].server_error, "error");
+      setTimeout(() => window.location.reload(), 1500);
+  });
 }
 
   function DelProductFromList(button) {
