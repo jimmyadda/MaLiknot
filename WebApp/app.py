@@ -487,8 +487,10 @@ def add_list_from_telegram():
         item = item.strip()
 
         if item:
-            # Match first number in the string (int or float)
-            match = re.search(r'\b\d+(\.\d+)?\b', item)
+            # Match first number in the string (int or float) if NOT followed by %
+            #match = re.search(r'\b\d+(\.\d+)?\b', item)            
+            match = re.search(r'\b(\d+(?:\.\d+)?)(?!\s*%)\b', item)
+
             if match:
                 try:
                     quantity = float(match.group())
