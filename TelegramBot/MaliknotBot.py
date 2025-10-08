@@ -233,8 +233,17 @@ def normalize_text(text: str) -> str:
     text = unicodedata.normalize("NFKC", text)
     text = text.replace("،", ",").replace("，", ",").replace("﹐", ",")
     text = re.sub(r"[\u200c\u200d\u202c\u202d\uFEFF\u00A0]", "", text)
-    text = re.sub(r"\s*,\s*", ",", text)
-    return text.strip()
+        # Split on both commas and newlines (1 or more), trim each item
+    parts = re.split(r"[,\n]+", text)
+
+    # Clean and remove empty entries
+    cleaned = [p.strip() for p in parts if p.strip()]
+
+    # Join back as comma-separated
+    return ", ".join(cleaned)
+
+"""     text = re.sub(r"\s*,\s*", ",", text)
+    return text.strip() """
 
 
 if __name__ == "__main__":
