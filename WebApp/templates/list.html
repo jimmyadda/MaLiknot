@@ -317,6 +317,8 @@ const notifyMessages = {
                   setTimeout(() => window.location.reload(), 1500);
               }
           }
+          //refresh page
+          setTimeout(function (){ window.location.href = window.location.href; }, 2000);
       } else {
           $.notify(msg.error_saving, "error");
       }
