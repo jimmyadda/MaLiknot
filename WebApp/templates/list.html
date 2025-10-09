@@ -144,7 +144,7 @@
       <div class="row row-cols-2 row-cols-sm-3 row-cols-md-4 row-cols-lg-5 g-3">
           <input type="text" id="productFilter" style="margin-bottom: 5px;" class="form-control" placeholder="Filter products...">
           {% for product in all_items%}  
-          <div class="col">
+          <div id="productcontainer" class="col">
           <div class="card" style="margin: 15px;">                 
           <div class="card-body">
               <p id = "prodid" style="display: none;">{{ product['id'] }}</p>
@@ -373,21 +373,47 @@ const notifyMessages = {
         DelProductFromList(this);
     });
 
-    $("#productFilter").on("keyup", function () {
-      
-      var value = $(this).val().toLowerCase();
+// Save original card order on page load
+                const originalCards = $(".card").toArray();
 
-      $(".card").each(function () {
-        const text = $(this).text().toLowerCase();
-        if (text.indexOf(value) > -1) {
-          $(this).show(); // fully displays the card
-        } else {
-          $(this).hide(); // removes it from layout
-        }
+                $("#productFilter").on("keyup", function () {
+                const value = $(this).val().toLowerCase();
+                const container = $("#productcontainer");
+
+                if (value === "") {
+                    // If input is empty — reset all cards in original order
+                    container.empty();
+                    originalCards.forEach(card => {
+                    $(card).show(); // make sure it's visible
+                    container.append(card);
+                    });
+                    return;
+                }
+
+                const matching = [];
+                const nonMatching = [];
+
+                originalCards.forEach(card => {
+                    const text = $(card).text().toLowerCase();
+                    if (text.includes(value)) {
+                    matching.push(card);
+                    } else {
+                    nonMatching.push(card);
+                    }
+                });
+
+                container.empty();
+                matching.forEach(card => {
+                    $(card).show();
+                    container.append(card);
+                });
+                nonMatching.forEach(card => {
+                    $(card).hide();
+                    container.append(card);
+                });
+                });
+              
       });
-    });
-        
-});
 </script>
 
 </body>
