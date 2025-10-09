@@ -44,10 +44,11 @@
                 <h1 class="mb-4" style="display: inline-block;"> Products Lists</h1>&nbsp;&nbsp;
                 <button id="addnewbtn" class="add-btn" title="add new product" style="background: none;border: 0;" ><i id="addnewbtn2" class="fa fa-plus"></i></button>
 
-                <div class="row row-cols-2 row-cols-sm-3 row-cols-md-4 row-cols-lg-5 g-3">
+                <div  class="">
                     <input type="text" id="productFilter" style="margin-bottom: 5px;" class="form-control" placeholder="Filter products...">
+                    <div id="productcontainer" class="row row-cols-2 row-cols-sm-3 row-cols-md-4 row-cols-lg-5 g-3">
                     {% for product in all_items%}  
-                    <div class="col">
+                    <div   class="col">
                     <div class="card" style="margin: 15px;">                 
                     <div class="card-body">
                         <p style="display: none;">{{ product['id'] }}</p>
@@ -74,13 +75,14 @@
                     </div> 
                 </div>
                     {% endfor%}
+                    </div> 
             </div>
         </div>
         </section>
 
         <script>
 
-            function deleteproduct(id) {
+     function deleteproduct(id) {
                      var settings = {
                          "async": true,
                          "crossDomain": true,
@@ -111,7 +113,7 @@
              
                  }
   
-            function deletelist(id) {
+     function deletelist(id) {
                      var settings = {
                          "async": true,
                          "crossDomain": true,
@@ -142,7 +144,7 @@
              
                  }
 
-            $(document).ready(function() {
+     $(document).ready(function() {
                 
                 $(".delprod").each(function(index) {
                     $(this).on("click", function() {
@@ -161,21 +163,45 @@
                 $("#addnewbtn").on("click", function() {
                     window.location.href = "{{ url_for('addproduct') }}";
                 });
+                // Save original card order on page load
+                const originalCards = $(".card").toArray();
 
-                //filter
                 $("#productFilter").on("keyup", function () {
-      
-                var value = $(this).val().toLowerCase();
+                const value = $(this).val().toLowerCase();
+                const container = $("#productcontainer");
 
-                $(".card").each(function () {
-                    const text = $(this).text().toLowerCase();
-                    if (text.indexOf(value) > -1) {
-                    $(this).show(); // fully displays the card
+                if (value === "") {
+                    // If input is empty — reset all cards in original order
+                    container.empty();
+                    originalCards.forEach(card => {
+                    $(card).show(); // make sure it's visible
+                    container.append(card);
+                    });
+                    return;
+                }
+
+                const matching = [];
+                const nonMatching = [];
+
+                originalCards.forEach(card => {
+                    const text = $(card).text().toLowerCase();
+                    if (text.includes(value)) {
+                    matching.push(card);
                     } else {
-                    $(this).hide(); // removes it from layout
+                    nonMatching.push(card);
                     }
                 });
-            });
+
+                container.empty();
+                matching.forEach(card => {
+                    $(card).show();
+                    container.append(card);
+                });
+                nonMatching.forEach(card => {
+                    $(card).hide();
+                    container.append(card);
+                });
+                });
 
             });
             </script>
