@@ -7,6 +7,7 @@ import sqlite3
 import random
 from threading import Thread
 import threading
+from bs4 import BeautifulSoup
 from flask import Flask, jsonify, send_file,flash,g,render_template,request,redirect, send_from_directory, session, url_for
 import flask_login
 import requests
@@ -258,17 +259,21 @@ def view_list(list_id):
     if not list_info:
         return "List not found", 404
     list_chat_id = list_info[0]['chat_id']    
-    # If coming from Telegram: extract via list name
-    if 'from_telegram' in request.args:
-        current_chat_id = extract_chat_id(list_info[0]['name'])
+    if request.host.startswith("127.0.0.1") or request.host.startswith("localhost"):
+        current_chat_id = list_chat_id  # skip Telegram validation entirely
+        lang = "en"
     else:
-        return "Access restricted", 403  
+        # If coming from Telegram: extract via list name
+        if 'from_telegram' in request.args:
+            current_chat_id = extract_chat_id(list_info[0]['name'])
+        else:
+            return "Access restricted", 403  
 
-    if current_chat_id != list_chat_id:
-        return "Unauthorized", 403 
+        if current_chat_id != list_chat_id:
+            return "Unauthorized", 403 
     
 
-    lang = get_user_language(list_chat_id) or "en"
+        lang = get_user_language(list_chat_id) or "en"
     confirm_message = get_message("confirm_all_collected", lang, quantity="{quantity}")
 
     #items  in list
@@ -642,6 +647,83 @@ def set_user_lang_api():
         return jsonify({"error": "Missing chat_id or lang"}), 400
     save_user_language(chat_id, lang)
     return jsonify({"status": "ok"})
+
+@app.route("/api/compare_prices", methods=["GET"])
+def compare_prices():
+    """
+    Example call:
+    /api/compare_prices?product=קולה&lat=32.689&lon=35.022
+    """
+    product = request.args.get("product")
+    lat = request.args.get("lat")
+    lon = request.args.get("lon")
+
+    if not product:
+        return jsonify({"error": "Missing product name"}), 400
+
+    # --- 1. Get location name ---
+    location_name = None
+    if lat and lon:
+        try:
+            headers = {
+                "User-Agent": "MaliknotBot/1.0 (contact: your_email@example.com)"
+            }
+            geo_url = f"https://nominatim.openstreetmap.org/reverse?lat={lat}&lon={lon}&format=json"
+            geo_res = requests.get(geo_url, headers=headers, timeout=10)
+            
+            geo_data = geo_res.json()
+            location_name = (
+                geo_data.get("address", {}).get("city")
+                or geo_data.get("address", {}).get("town")
+                or geo_data.get("address", {}).get("village")
+                or geo_data.get("address", {}).get("county")
+                or "תל אביב"
+            )
+        except Exception:
+            location_name = "תל אביב"
+    else:
+        location_name = request.args.get("location", "תל אביב")
+    location_name = "עתלית"
+    # --- 2. Fetch CHP page ---
+    chp_url = (
+        f"https://chp.co.il/main_page/compare_results"
+        f"?shopping_address={location_name}&product_name_or_barcode={product}"
+    )
+    try:
+        chp_res = requests.get(chp_url, timeout=15)
+        chp_res.raise_for_status()
+    except Exception as e:
+        return jsonify({"error": f"Failed to fetch CHP: {str(e)}"}), 500
+
+    # --- 3. Parse HTML to extract the results-table ---
+    soup = BeautifulSoup(chp_res.text, "html.parser")
+    table = soup.find("table", {"class": "results-table"})
+    if not table:
+        return jsonify({"error": "No results-table found"}), 404
+
+    rows = []
+    results = []
+    for tr in table.find_all("tr")[1:]:  # skip header row
+        tds = tr.find_all("td")
+        if len(tds) >= 5:
+            store_name = tds[0].get_text(strip=True)
+            branch = tds[1].get_text(strip=True)
+            address = tds[2].get_text(strip=True)
+            price = tds[4].get_text(strip=True)
+            if store_name and price:
+                results.append({
+                    "store": store_name,
+                    "branch": branch,
+                    "address": address,
+                    "price": price
+                })
+
+    return jsonify({
+        "product": product,
+        "location": location_name,
+        "count": len(results),
+        "results": results
+    })
 #EndRegion
 
 def check_and_notify_list_completion(list_id):
