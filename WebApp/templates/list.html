@@ -88,6 +88,8 @@
   left: 50% !important;
   transform: translate(-50%, -50%) !important;
 }
+
+
 .table th, .table td {
   vertical-align: middle;
   text-align: center;
@@ -101,39 +103,36 @@
   transform: scale(1.2);
 }
 
-/* 🧩 Mobile stacking rule */
+/* 🧩 Mobile responsive layout */
 @media (max-width: 768px) {
-  /* hide unneeded columns */
+  /* Hide only price and notes columns */
   .col-price,
-  .col-notes,
-  .col-collected {
+  .col-notes {
     display: none;
   }
 
-  /* tighten spacing */
-  .table td, .table th {
-    padding: 0.4rem;
-    font-size: 0.9rem;
-  }
-
-  /* 3 visible columns: name, qty, actions */
+  /* Adjust widths for 4-column layout */
   .col-name {
-    width: 55%;
+    width: 40%;
     text-align: right;
   }
   .col-qty {
     width: 15%;
   }
+  .col-collected {
+    width: 15%;
+  }
   .col-actions {
-    width: 30%;
+    width: 25%;
   }
 
-  /* buttons smaller side-by-side */
+  /* Compact buttons */
   .col-actions .btn {
     padding: 0.25rem 0.5rem;
     font-size: 0.85rem;
   }
 }
+
 
 </style>
 
