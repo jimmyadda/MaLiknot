@@ -88,6 +88,53 @@
   left: 50% !important;
   transform: translate(-50%, -50%) !important;
 }
+.table th, .table td {
+  vertical-align: middle;
+  text-align: center;
+}
+
+.table td:first-child {
+  text-align: right; /* Hebrew alignment for product names */
+}
+
+.table td input[type=checkbox] {
+  transform: scale(1.2);
+}
+
+/* 🧩 Mobile stacking rule */
+@media (max-width: 768px) {
+  /* hide unneeded columns */
+  .col-price,
+  .col-notes,
+  .col-collected {
+    display: none;
+  }
+
+  /* tighten spacing */
+  .table td, .table th {
+    padding: 0.4rem;
+    font-size: 0.9rem;
+  }
+
+  /* 3 visible columns: name, qty, actions */
+  .col-name {
+    width: 55%;
+    text-align: right;
+  }
+  .col-qty {
+    width: 15%;
+  }
+  .col-actions {
+    width: 30%;
+  }
+
+  /* buttons smaller side-by-side */
+  .col-actions .btn {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.85rem;
+  }
+}
+
 </style>
 
 
@@ -105,7 +152,7 @@
 <div class="container">
   <h1 class="mb-3">🛒 Products in list:  {{ list_name }}   </h1>
   <p id = "listid" style="display: none;">{{ list_id }}</p>
-
+<!-- 
   <ul id="itemsinlist"  class="list-group mb-3">
     {% for item in items %}
       <li class="list-group-item d-flex justify-content-between align-items-center
@@ -126,7 +173,7 @@
                    data-confirm-message="{{ confirm_message }}"
                    {% if item.collected %}checked{% endif %} >
 
-            <span class="">|</span> <!-- separator -->
+            <span class="">|</span> 
               <button id="del_prod" class="delete-btn" title="remove product from list"><i class="fa fa-trash"></i></button>
               <button class="compareBtn" data-product="{{ item['name'] }}" 
               style="background-color: blue;color: white;border: 0;"><i class="fa fa-balance-scale"></i></button>
@@ -136,7 +183,55 @@
       <li class="list-group-item">No items yet.</li>
     {% endfor %}
   </ul>
-
+ -->
+<div class="table-responsive">
+  <table class="table table-hover align-middle text-end" style="direction: rtl;">
+    <thead class="table-light">
+      <tr>
+        <th class="col-name">שם פריט</th>
+        <th class="col-qty">כמות</th>
+        <th class="col-price">מחיר</th>
+        <th class="col-notes">הערות</th>
+        <th class="col-collected">נאסף</th>
+        <th class="col-actions">פעולות</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for item in items %}
+        <tr class="{% if item.collected %}table-success{% endif %}">
+          <td class="col-name">
+            {% if item.collected %}
+              <span class="text-decoration-line-through text-muted">{{ item['name'] }}</span>
+            {% else %}
+              {{ item['name'] }}
+            {% endif %}
+          </td>
+          <td class="col-qty">{{ item['quantity'] }}</td>
+          <td class="col-price">{{ item['price'] or '-' }}</td>
+          <td class="col-notes">{{ item['notes'] or '' }}</td>
+          <td class="col-collected">
+            <input class="form-check-input" type="checkbox"
+                   data-item-id="{{ item['product_id'] }}"
+                   onchange="updateCollected(this)"
+                   {% if item.collected %}checked{% endif %}>
+          </td>
+          <td class="col-actions">
+            <button class="delete-btn btn btn-danger btn-sm me-1" title="הסר">
+              <i class="fa fa-trash"></i>
+            </button>
+            <button class="compareBtn btn btn-primary btn-sm"
+                    title="השוואת מחירים"
+                    data-product="{{ item['name'] }}">
+              <i class="fa fa-balance-scale"></i>
+            </button>
+          </td>
+        </tr>
+      {% else %}
+        <tr><td colspan="6" class="text-center text-muted">אין פריטים ברשימה</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
 
 
 
