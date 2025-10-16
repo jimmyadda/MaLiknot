@@ -32,6 +32,15 @@ def create_db():
                 archived INTEGER DEFAULT 0
             );
     ''')
+    
+    # Ensure created_at exists (for upgrades)
+    cursor.execute("PRAGMA table_info(lists);")
+    columns = [col[1] for col in cursor.fetchall()]
+    if "created_at" not in columns:
+        cursor.execute("ALTER TABLE lists ADD COLUMN created_at TEXT;")
+        cursor.execute("UPDATE lists SET created_at = datetime('now');")
+
+        
     cursor.execute('''
     CREATE TABLE IF NOT EXISTS categories (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
