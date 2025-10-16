@@ -254,6 +254,58 @@ def delete_product(product_id):
 
 @app.route("/list/<int:list_id>", methods=["GET", "POST"])
 def view_list(list_id):
+    import re
+
+    list_info = database_read("SELECT name, chat_id FROM lists WHERE id = ?", (list_id,))
+    if not list_info:
+        return "List not found", 404
+
+    list_name_value = list_info[0]['name']
+    match = re.search(r'\[(\d+)\]', list_name_value)
+    list_chat_id = list_info[0]['chat_id'] or (match.group(1) if match else None)
+
+    if request.host.startswith("127.0.0.1") or request.host.startswith("localhost"):
+        current_chat_id = list_chat_id
+        lang = "en"
+    else:
+        if 'from_telegram' in request.args:
+            current_chat_id = extract_chat_id(list_info[0]['name'])
+        else:
+            return "Access restricted", 403  
+        if current_chat_id != list_chat_id:
+            return "Unauthorized", 403 
+        lang = get_user_language(list_chat_id) or "en"
+
+    confirm_message = get_message("confirm_all_collected", lang, quantity="{quantity}")
+
+    # ✅ unified product query with favorites join
+    list_items_data = database_read("""
+        SELECT p.*, pl.quantity, pl.collected, pl.notes,
+               CASE WHEN f.product_id IS NOT NULL THEN 1 ELSE 0 END AS is_favorite
+        FROM product_in_list pl
+        JOIN products p ON p.id = pl.product_id
+        LEFT JOIN favorites f ON f.product_id = p.id AND f.chat_id = ?
+        WHERE pl.list_id = ?
+        ORDER BY pl.collected ASC;
+    """, (list_chat_id, list_id))
+
+    list_name = list_name_value
+    items_data = database_read("SELECT p.*, cat.name AS catName FROM products p LEFT JOIN categories cat ON category_id = cat.id")
+    categories = database_read("SELECT * FROM categories ORDER BY name;")
+
+    return render_template(
+        "list.html",
+        list_id=list_id,
+        items=list_items_data,
+        list_name=list_name,
+        all_items=items_data,
+        categories=categories,
+        confirm_message=confirm_message,
+        lang=lang
+    )
+
+""" @app.route("/list/<int:list_id>", methods=["GET", "POST"])
+def view_list(list_id):
     
     list_info = database_read("SELECT name, chat_id FROM lists WHERE id = ?", (list_id,))
     if not list_info:
@@ -295,7 +347,7 @@ def view_list(list_id):
         list_name = " "
     items_data = database_read(f"select p.*,cat.name as catName from products p left JOIN categories cat on category_id = cat.id")
     categories =  database_read(f"select * from categories order by name;")   
-    return render_template("list.html", list_id=list_id,list_data=list_data, items=list_items_data,list_name=list_name,all_items=items_data,categories=categories,confirm_message=confirm_message,lang=lang)
+    return render_template("list.html", list_id=list_id,list_data=list_data, items=list_items_data,list_name=list_name,all_items=items_data,categories=categories,confirm_message=confirm_message,lang=lang) """
 
 @app.route('/delete_List/<int:List_id>', methods=['DELETE', 'POST'])
 @flask_login.login_required
@@ -324,30 +376,38 @@ def add_product_to_list():
     product_id = request.form.get("product_id", "").strip()
     QTY = request.form.get("QTY", "").strip()
     notes = request.form.get("notes", "").strip()
-    print('notes' , notes)
-
     if not list_id or not product_id:
         return "Missing list_name or product_name", 400
     # Check if already in list
-    existing = database_read(f"SELECT 1 FROM product_in_list WHERE list_id ='{list_id}' AND product_id = '{product_id}';")
+    #existing = database_read(f"SELECT 1 FROM product_in_list WHERE list_id ='{list_id}' AND product_id = '{product_id}';")
+    existing = database_read("""
+            SELECT id, quantity FROM product_in_list
+            WHERE list_id = ? AND product_id = ?
+        """, (list_id, product_id))
+    print('existing' , existing, 'productid', product_id)
 
     if not existing:
       try:
         sql= f"INSERT INTO product_in_list (list_id, product_id,quantity,notes, collected) VALUES ('{list_id}', '{product_id}','{QTY}','{notes}',0);"
-        ok = database_write(sql)
-        print(ok)
-        if ok == 1 :
-            flash(f"Product Added to list!", "success")
-            return render_template('list.html',list_id=list_id)
-        else:
-            flash(f"Failed to add product", "error")  
-            return jsonify({'error': 'Missing required fields'}), 400
+        ok = database_write(sql) 
+        return jsonify({"status": "removed" if ok else "not_found"})
         
       except sqlite3.Error as e:
         print("SQLite error:", e)
         flash(f"Database error: {e}", "danger")
         return jsonify({'error': str(e)}), 500
+    else:
+         # ✅ Item exists → update quantity to + 1
+            existing_qty = existing[0]["quantity"]
+            ok = database_write("""
+                UPDATE product_in_list
+                SET quantity = ?
+                WHERE id = ?
+                and list_id = ?
+            """, (existing_qty + 1, existing[0]["id"],list_id))
+            return jsonify({"status": "removed" if ok else "not_found"})
 
+    
 @app.route('/update_collected/<int:item_id>', methods=['POST'])
 def update_collected(item_id):
     try:
@@ -651,7 +711,7 @@ def set_user_lang_api():
 @app.route("/api/compare_prices", methods=["GET"])
 def compare_prices():
     """
-    Example call:
+    Example :
     /api/compare_prices?product=קולה&lat=32.689&lon=35.022
     """
     product = request.args.get("product")
@@ -683,7 +743,7 @@ def compare_prices():
             location_name = "תל אביב"
     else:
         location_name = request.args.get("location", "תל אביב")
-    location_name = "עתלית"
+    print(location_name)
     # --- 2. Fetch CHP page ---
     chp_url = (
         f"https://chp.co.il/main_page/compare_results"
@@ -724,6 +784,74 @@ def compare_prices():
         "count": len(results),
         "results": results
     })
+
+@app.route("/api/search_products")
+def search_products():
+    q = request.args.get("q", "").strip()
+    print(q)
+    if not q:
+        return jsonify({"results": []})
+    results = database_read("""
+        SELECT p.id AS product_id, 
+            p.name, 
+            p.price, 
+            p.unit, 
+            cat.name AS category
+        FROM products p
+        LEFT JOIN categories cat ON cat.id = p.category_id
+        WHERE p.name LIKE ?
+        ORDER BY p.name ASC
+        LIMIT 15;
+    """, (f"%{q}%",))
+    return jsonify({"results": results})
+
+  #Favorites
+
+@app.route("/api/favorites/<int:chat_id>", methods=["GET"])
+def get_favorites(chat_id):
+    sql = """
+        SELECT p.id AS product_id, p.name, p.price, p.unit, cat.name AS category
+        FROM favorites f
+        JOIN products p ON p.id = f.product_id
+        LEFT JOIN categories cat ON cat.id = p.category_id
+        WHERE f.chat_id = ?
+        ORDER BY f.created_at DESC;
+    """
+    data = database_read(sql, (chat_id,))
+    return jsonify({"results": data})
+
+
+@app.route("/api/favorites/add", methods=["POST"])
+def add_favorite():
+    data = request.get_json()
+    chat_id = data.get("chat_id")
+    product_id = data.get("product_id")
+
+    if not (chat_id and product_id):
+        return jsonify({"error": "Missing chat_id or product_id"}), 400
+
+    ok = database_write(
+        "INSERT OR IGNORE INTO favorites (chat_id, product_id) VALUES (?, ?)",
+        (chat_id, product_id)
+    )
+    return jsonify({"status": "added" if ok else "exists"})
+
+
+@app.route("/api/favorites/remove", methods=["POST"])
+def remove_favorite():
+    data = request.get_json()
+    chat_id = data.get("chat_id")
+    product_id = data.get("product_id")
+
+    if not (chat_id and product_id):
+        return jsonify({"error": "Missing chat_id or product_id"}), 400
+
+    ok = database_write(
+        "DELETE FROM favorites WHERE chat_id = ? AND product_id = ?",
+        (chat_id, product_id)
+    )
+    return jsonify({"status": "removed" if ok else "not_found"})
+
 #EndRegion
 
 def check_and_notify_list_completion(list_id):

@@ -81,6 +81,14 @@ def create_db():
     chat_id TEXT PRIMARY KEY,
     lang TEXT); ''')
 
+    cursor.execute(''' CREATE TABLE IF NOT EXISTS favorites (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    chat_id INTEGER NOT NULL,
+    product_id INTEGER NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE(chat_id, product_id)); ''')
+
+     
     # הוספת קטגוריות
     categories = [
         "ירקות ופירות", "שימורים", "מוצרי חלב", "סלטים, שמנים, רטבים ותוספות", "קפואים",
