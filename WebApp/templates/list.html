@@ -132,58 +132,109 @@
     font-size: 0.85rem;
   }
 }
+/**footer*/
+/* 🌿 Mobile footer base */
+.mobile-footer {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 64px;
+  background-color: #fff;
+  border-top: 1px solid #e0e0e0;
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.05);
+  z-index: 1030;
+}
 
+/* 🧩 Footer buttons */
+.footer-item {
+  flex: 1;
+  background: none;
+  border: none;
+  outline: none;
+  text-align: center;
+  color: #999;
+  font-size: 0.75rem;
+  transition: all 0.2s ease;
+}
 
+.footer-item i {
+  display: block;
+  font-size: 1.4rem;
+  margin-bottom: 2px;
+}
+
+/* 🟢 Active / selected state */
+.footer-item.active {
+  color: #2ecc71; /* green accent like screenshot */
+  position: relative;
+}
+
+/* underline highlight */
+.footer-item.active::after {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  left: 25%;
+  width: 50%;
+  height: 3px;
+  background-color: #2ecc71;
+  border-radius: 2px;
+}
+
+/* subtle press effect */
+.footer-item:active {
+  opacity: 0.8;
+  transform: translateY(1px);
+}
+
+/* 🖥 On large screens - optional hide */
+@media (min-width: 992px) {
+  .mobile-footer {
+    display: none; /* keep only for mobile */
+  }
+}
+
+#searchResults {
+  max-height: 250px;
+  overflow-y: auto;
+}
+#searchResults li {
+  transition: background 0.2s;
+}
+#searchResults li:hover {
+  background-color: #f8f9fa;
+}
+
+.addToListBtn {
+  width: 36px;
+  height: 36px;
+  border: 0;
+  color: #2ecc71;
+  background-color: white;
+}
+.addToListBtn i {
+  font-size: 1rem;
+}
 </style>
 
-
-<form class="d-flex">
-  <button class="btn btn-outline-dark" type="submit">
-      <i class="bi-cart-fill me-1"></i>
-      Cart
-      <span class="badge bg-dark text-white ms-1 rounded-pill">{{ get_collected_count(list_id) }}</span>
-  </button>
-</form>
-
 <body class="p-4">
-
 <!--All items -->
-<div class="container">
-  <h1 class="mb-3">🛒 Products in list:  {{ list_name }}   </h1>
+<div class="container" style="direction: rtl;">
+  <h1 class="mb-3">🛒  {{ list_name }}   </h1>
   <p id = "listid" style="display: none;">{{ list_id }}</p>
-<!-- 
-  <ul id="itemsinlist"  class="list-group mb-3">
-    {% for item in items %}
-      <li class="list-group-item d-flex justify-content-between align-items-center
-          {% if item.collected %} list-group-item-success {% endif %}">
-           {% if item.collected %} <strike> {% endif %}
-        <span>
-          {{ loop.index }}. &nbsp; {{ item['name'] }}  &nbsp; {% if item.collected %}<strong>(נאסף)</strong>{% endif %}   <br>Quantity: {{ item['quantity'] }}  &nbsp;  Price: {{ item['price'] }}  &nbsp;  Notes:  {% if item.notes %}<strong>{{ item['notes']}}</strong>{% endif %}          
-        </span>
-         {% if item.collected %}</strike>{% endif %}
-          <div class="form-check">
-            <input class="form-check-input position-static" 
-                   data-item-id="{{ item['product_id'] }}" 
-                   type="checkbox" 
-                   id="blankCheckbox" 
-                   onchange="updateCollected(this)" 
-                   value="option1" 
-                   data-quantity="{{ item.quantity }}"
-                   data-confirm-message="{{ confirm_message }}"
-                   {% if item.collected %}checked{% endif %} >
 
-            <span class="">|</span> 
-              <button id="del_prod" class="delete-btn" title="remove product from list"><i class="fa fa-trash"></i></button>
-              <button class="compareBtn" data-product="{{ item['name'] }}" 
-              style="background-color: blue;color: white;border: 0;"><i class="fa fa-balance-scale"></i></button>
-          </div>
-      </li>
-    {% else %}
-      <li class="list-group-item">No items yet.</li>
-    {% endfor %}
-  </ul>
- -->
-<div class="table-responsive">
+  <!-- 🔍 Quick Add Item -->
+<div class="input-group mb-3 mt-3" style="direction: rtl;">
+    <input type="text" id="quickSearch" class="form-control" placeholder="חיפוש והוספת מוצר..." style="border-radius: 10px;">
+</div>
+    <ul id="searchResults" class="list-group mb-3 mt-3" style="direction: rtl;"></ul>
+
+<!--The List-->
+<div id="itemsinlist" class="table-responsive">
   <table class="table table-hover align-middle text-end" style="direction: rtl;">
     <thead class="table-light">
       <tr>
@@ -199,6 +250,11 @@
       {% for item in items %}
         <tr class="{% if item.collected %}table-success{% endif %}">
           <td class="col-name">
+              <button class="favToggle btn btn-link p-0 me-1"
+          data-product-id="{{ item['id'] }}"
+          title="הוסף למועדפים">
+    <i class="fa {% if item['is_favorite'] %}fa-star text-warning{% else %}fa-star-o text-secondary{% endif %}"></i>
+  </button>
             {% if item.collected %}
               <span class="text-decoration-line-through text-muted">{{ item['name'] }}</span>
             {% else %}
@@ -209,10 +265,15 @@
           <td class="col-price">{{ item['price'] or '-' }}</td>
           <td class="col-notes">{{ item['notes'] or '' }}</td>
           <td class="col-collected">
-            <input class="form-check-input" type="checkbox"
-                   data-item-id="{{ item['product_id'] }}"
-                   onchange="updateCollected(this)"
-                   {% if item.collected %}checked{% endif %}>
+            <input class="form-check-input position-static" 
+                   data-item-id="{{ item['id'] }}" 
+                   type="checkbox" 
+                   id="blankCheckbox" 
+                   onchange="updateCollected(this)" 
+                   value="option1" 
+                   data-quantity="{{ item.quantity }}"
+                   data-confirm-message="{{ confirm_message }}"
+                   {% if item.collected %}checked{% endif %} >
           </td>
           <td class="col-actions">
             <button class="delete-btn btn btn-danger btn-sm me-1" title="הסר">
@@ -232,53 +293,46 @@
   </table>
 </div>
 
+<!-- 🟢 Modern Mobile Footer Navigation -->
+<nav class="mobile-footer">
+  <button class="footer-item active" id="btnList">
+    <i class="fa fa-shopping-cart"></i>
+    <span>רשימה</span>
+  </button>
 
+  <button class="footer-item" id="btnFrequently">
+    <i class="fa fa-star"></i>
+    <span>מועדפים</span>
+  </button>
 
-  <form method="POST" class="d-flex mb-3">
-    <div class="container container-box">
-      <h1 class="mb-4"> Add Products to list</h1>
-      <div class="row row-cols-2 row-cols-sm-3 row-cols-md-4 row-cols-lg-5 g-3">
-          <input type="text" id="productFilter" style="margin-bottom: 5px;" class="form-control" placeholder="Filter products...">
-          {% for product in all_items%}  
-          <div id="productcontainer" class="col">
-          <div class="card" style="margin: 15px;">                 
-          <div class="card-body">
-              <p id = "prodid" style="display: none;">{{ product['id'] }}</p>
-              <!-- Product name-->
-              <div class="card-title">{{ product['name'] }}                            
-                  <!-- Product details-->
-                  <div class="card-text">                    
-                          <!-- Product price-->
-                          $ {{ product['price'] }}
-                          <br>
-                          {{ product['catName'] }}
-                          <br>
-                          {{ product['unit'] }}
-                      </div>
-                  </div>
-                  <div class="product-actions text-center"> <!--mobile-->
-                  <div class="qty-wrapper">
-                    <button class="minus" type="button" onclick="changeQty(this,-1)">-</button>
-                    <input type="number" name="quantity" id="quantity" value="1" min="1" class="qty-input">
-                    <button class="plus" type="button" onclick="changeQty(this,1)">+</button>
-                  </div>
-                  <!-- Product actions-->
-                  <div  class="action-wrapper">
-                    <!-- <input type="text" id="notes" name="notes" placeholder="add notes..">   -->
-                    <textarea id="notes" name="notes" rows="3" placeholder="add notes.." class="form-control note-input"></textarea>                    
-                  </div>
-                </div> <!--mobile-->
-                <div  style="display: flex;" class="text-center"><a class="btn btn-outline-dark mt-auto" href="#" onclick="addProductToList(this); return false;" >הוסף פריט לרשימה</a>
-                </div>
-              </div>
-          </div> 
+  <button class="footer-item" id="btnHistory">
+    <i class="fa fa-history"></i>
+    <span>היסטוריה</span>
+  </button>
+
+  <button class="footer-item" id="btnShare">
+    <i class="fa fa-share-alt fa-lg d-block"></i>
+    <span>שתף</span>
+  </button>
+</nav>
+
+  <!-- Favorite modal-->
+   <!-- ⭐ Favorites Modal -->
+<div class="modal fade" id="favoritesModal" tabindex="-1" aria-labelledby="favoritesModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header bg-success text-dark">
+        <h5 class="modal-title" id="favoritesModalLabel">נרכשים לעיתים קרובות</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="סגור" style="left: 0;position: absolute;"></button>
       </div>
-          {% endfor%}
+      <div class="modal-body">
+        <ul id="favoritesList" class="list-group text-end">
+          <li class="list-group-item text-muted">טוען נתונים...</li>
+        </ul>
+      </div>
+    </div>
   </div>
 </div>
-  </form>
-
-
     <!-- Price Comparison Modal -->
   <div class="modal fade" id="compareModal" tabindex="-1" aria-labelledby="compareModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered modal-lg">
@@ -295,6 +349,7 @@
       </div>
     </div>
   </div>
+
 
 </div>
 
@@ -447,10 +502,9 @@ const notifyMessages = {
 
   function DelProductFromList(button) {
     //get clicked card data
-    const data = button.closest('.form-check'); // or any container class
-    const listid =  document.querySelector('#listid').textContent
-    const productid = data.querySelector('#blankCheckbox').dataset.itemId
-
+    const row = button.closest('tr'); // use row instead of .form-check
+    const listid = document.querySelector('#listid').textContent;
+    const productid = row.querySelector('.col-collected input').dataset.itemId;
       fetch("/Remove_product_from_list", {
         method: "POST",
         headers: {
@@ -487,52 +541,10 @@ const notifyMessages = {
         //deleteitemfromlist...
         DelProductFromList(this);
     });
+                                        
+  });
 
-// Save original card order on page load
-                const originalCards = $(".card").toArray();
-
-                $("#productFilter").on("keyup", function () {
-                const value = $(this).val().toLowerCase();
-                const container = $("#productcontainer");
-
-                if (value === "") {
-                    // If input is empty — reset all cards in original order
-                    container.empty();
-                    originalCards.forEach(card => {
-                    $(card).show(); // make sure it's visible
-                    container.append(card);
-                    });
-                    return;
-                }
-
-                const matching = [];
-                const nonMatching = [];
-
-                originalCards.forEach(card => {
-                    const text = $(card).text().toLowerCase();
-                    if (text.includes(value)) {
-                    matching.push(card);
-                    } else {
-                    nonMatching.push(card);
-                    }
-                });
-
-                container.empty();
-                matching.forEach(card => {
-                    $(card).show();
-                    container.append(card);
-                });
-                nonMatching.forEach(card => {
-                    $(card).hide();
-                    container.append(card);
-                });
-                });
-
-                
-              
-      });
-
-      async function getLocationName() {
+  async function getLocationName() {
   return new Promise((resolve, reject) => {
     navigator.geolocation.getCurrentPosition(async (pos) => {
       const lat = pos.coords.latitude;
@@ -545,6 +557,8 @@ const notifyMessages = {
   });
 }
 
+
+//Compare prices
    document.addEventListener("click", async function(e) {
           const btn = e.target.closest(".compareBtn");
           if (!btn) return; // click not on a compare button
@@ -606,6 +620,193 @@ const notifyMessages = {
           }
         
       });
+
+//search product
+let searchTimeout;
+
+$("#quickSearch").on("keyup", function () {
+  const query = $(this).val().trim();
+  const listId = $("#listid").text();
+  const resultsList = $("#searchResults");
+
+  // clear old timeout
+  clearTimeout(searchTimeout);
+
+  // only search after user stops typing for 300ms
+  searchTimeout = setTimeout(async () => {
+    if (query.length < 2) {
+      resultsList.empty();
+      return;
+    }
+
+    try {
+      const res = await fetch(`/api/search_products?q=${encodeURIComponent(query)}`);
+      const data = await res.json();
+      resultsList.empty();
+
+      if (!data.results || data.results.length === 0) {
+        resultsList.append(`<li class="list-group-item text-muted">לא נמצאו תוצאות</li>`);
+        return;
+      }
+
+      data.results.forEach(p => {
+        resultsList.append(`
+        <li class="list-group-item d-flex justify-content-between align-items-center">
+          <span>${p.name} <small class="text-muted">${p.category || ''}</small></span>
+          <button class="btn btn-sm btn-success addToListBtn"
+                  data-product-id="${p.product_id}" 
+                  title="הוסף פריט">
+            <i class="fa fa-plus"></i>
+          </button>
+        </li>
+        `);
+      });
+    } catch (err) {
+      console.error("Search error:", err);
+    }
+  }, 300); // delay for typing
+});
+
+// handle adding product to list
+$(document).on("click", ".addToListBtn", async function () {
+  const listId = $("#listid").text();
+  const productId = $(this).data("product-id");
+
+  const resp = await fetch("/add_product_to_list", {
+    method: "POST",
+    headers: { "Content-Type": "application/x-www-form-urlencoded" },
+    body: `list_id=${encodeURIComponent(listId)}&product_id=${encodeURIComponent(productId)}&QTY=1&notes=`
+  });
+
+  if (resp.ok) {
+            if (window.innerWidth < 768) {
+                // Mobile - use SweetAlert
+                Swal.fire({
+                  title: 'פריט נוסף',
+                  text: 'הפריט התווסף לרשימה בהצלחה',
+                  icon: 'success',
+                  confirmButtonText: 'אישור'
+                });
+              } else {
+                // Desktop - use $.notify
+                $.notify("פריט התווסף לרשימה", "success");
+              }
+              location.reload();
+  } else {
+    $.notify("⚠️ שגיאה בהוספה", "error");
+  }
+});
+
+
+//toggle footer
+document.querySelectorAll('.footer-item').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.footer-item').forEach(el => el.classList.remove('active'));
+    btn.classList.add('active');
+  });
+});
+ //favorite click
+ document.getElementById("btnFrequently").addEventListener("click", async () => {
+  const chatId = "{{ list_name.split('[')[1].split(']')[0] | default('0') }}";
+  const listId = document.getElementById("listid").textContent;
+  const listEl = document.getElementById("favoritesList");
+  listEl.innerHTML = `<li class="list-group-item text-muted">טוען נתונים...</li>`;
+
+  const modal = new bootstrap.Modal(document.getElementById("favoritesModal"));
+  modal.show();
+
+  try {
+    const res = await fetch(`/api/favorites/${chatId}`);
+    const data = await res.json();
+    listEl.innerHTML = "";
+
+    if (!data.results || data.results.length === 0) {
+      listEl.innerHTML = `<li class="list-group-item text-muted">אין עדיין מועדפים</li>`;
+      return;
+    }
+
+    data.results.forEach(p => {
+      const li = document.createElement("li");
+      li.className = "list-group-item d-flex justify-content-between align-items-center";
+      li.innerHTML = `
+        <span>${p.name}</span>
+        <button class="btn btn-success btn-sm addFavBtn" 
+                data-product-id="${p.product_id}"
+                title="הוסף לרשימה">
+          <i class="fa fa-plus"></i>
+        </button>
+      `;
+      listEl.appendChild(li);
+    });
+  } catch (err) {
+    console.error(err);
+    listEl.innerHTML = `<li class="list-group-item text-danger">⚠️ שגיאה בטעינת המועדפים</li>`;
+  }
+});
+
+// handle clicking the + button in favorites
+document.addEventListener("click", async (e) => {
+  const btn = e.target.closest(".addFavBtn");
+  if (!btn) return;
+
+  const listId = document.getElementById("listid").textContent;
+  const productId = btn.dataset.productId;
+  console.log(listId,productId);
+
+  const resp = await fetch("/add_product_to_list", {
+    method: "POST",
+    headers: { "Content-Type": "application/x-www-form-urlencoded" },
+    body: `list_id=${encodeURIComponent(listId)}&product_id=${encodeURIComponent(productId)}&QTY=1&notes=`
+  });
+
+  if (resp.ok) {
+            if (window.innerWidth < 768) {
+                // Mobile - use SweetAlert
+                Swal.fire({
+                  title: 'פריט נוסף',
+                  text: 'הפריט התווסף לרשימה בהצלחה',
+                  icon: 'success',
+                  confirmButtonText: 'אישור'
+                });
+              } else {
+                // Desktop - use $.notify
+                $.notify("פריט התווסף לרשימה", "success");
+              }  
+              location.reload();
+            } else {
+    $.notify("⚠️ שגיאה בהוספה", "error");
+  }
+});
+//add/remove fav
+document.addEventListener("click", async (e) => {
+  const btn = e.target.closest(".favToggle");
+  if (!btn) return;
+
+  const icon = btn.querySelector("i");
+  const productId = btn.dataset.productId;
+  const chatId = "{{ list_name.split('[')[1].split(']')[0] | default('0') }}";
+  console.log(productId,chatId);
+
+  const isFav = icon.classList.contains("fa-star");
+
+  const url = isFav ? "/api/favorites/remove" : "/api/favorites/add";
+  const res = await fetch(url, {
+    method: "POST",
+    headers: {"Content-Type": "application/json"},
+    body: JSON.stringify({ chat_id: chatId, product_id: productId })
+  });
+  const data = await res.json();
+
+  if (data.status === "added") {
+    icon.classList.remove("fa-star-o", "text-secondary");
+    icon.classList.add("fa-star", "text-warning");
+    $.notify("⭐ נוסף למועדפים", "success");
+  } else if (data.status === "removed") {
+    icon.classList.remove("fa-star", "text-warning");
+    icon.classList.add("fa-star-o", "text-secondary");
+    $.notify("❌ הוסר מהמועדפים", "info");
+  }
+});
 </script>
 
 </body>
