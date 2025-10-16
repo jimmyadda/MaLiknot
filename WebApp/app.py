@@ -580,7 +580,8 @@ def add_list_from_telegram():
     if existing_list:
         list_id = existing_list[0]['id']
     else:
-        database_write("INSERT INTO lists (name,chat_id) VALUES (?,?)", (list_name,chat_id))
+        now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        database_write("INSERT INTO lists (name,chat_id, created_at) VALUES (?,?,?)", (list_name,chat_id, now))
         list_id = database_read("SELECT max(id) as id FROM lists WHERE chat_id = ?", (chat_id,))[0]['id']
         
     for item in item_details:
@@ -643,7 +644,8 @@ def duplicate_list(list_id):
        
     chat_id = database_read("SELECT chat_id FROM lists WHERE id = ?", (list_id,))[0]["chat_id"]
     new_name = original[0]['name'] + " (העתק)"
-    database_write("INSERT INTO lists (name,chat_id) VALUES (?,?)", (new_name,chat_id))
+    now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    database_write("INSERT INTO lists (name,chat_id, created_at) VALUES (?,?,?)", (new_name,chat_id, now))
     new_id = database_read("SELECT max(id) as id FROM lists")[0]['id']
 
     items = database_read("SELECT product_id, quantity, notes FROM product_in_list WHERE list_id = ?", (list_id,))
@@ -852,6 +854,20 @@ def remove_favorite():
     )
     return jsonify({"status": "removed" if ok else "not_found"})
 
+
+@app.route("/api/history/<int:chat_id>")
+def get_history(chat_id):
+    """
+    Returns all archived (completed) lists for a given chat_id.
+    """
+    sql = """
+        SELECT id, name, datetime(created_at, 'localtime') AS created_at
+        FROM lists
+        WHERE chat_id = ? AND archived = 1
+        ORDER BY created_at DESC;
+    """
+    data = database_read(sql, (chat_id,))
+    return jsonify({"results": data})
 #EndRegion
 
 def check_and_notify_list_completion(list_id):

@@ -333,13 +333,29 @@
     </div>
   </div>
 </div>
+ <!--History modal-->
+ <div class="modal fade" id="historyModal" tabindex="-1" aria-labelledby="historyModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-lg">
+    <div class="modal-content">
+      <div class="modal-header bg-secondary text-white">
+        <h5 class="modal-title" id="historyModalLabel">היסטוריית רשימות קניות</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <ul id="historyList" class="list-group text-end">
+          <li class="list-group-item text-muted">טוען נתונים...</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
     <!-- Price Comparison Modal -->
   <div class="modal fade" id="compareModal" tabindex="-1" aria-labelledby="compareModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered modal-lg">
       <div class="modal-content">
         <div class="modal-header bg-primary text-white">
           <h5 class="modal-title" id="compareModalLabel">השוואת מחירים</h5>
-          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" style="left: 0;position: absolute;"></button>
         </div>
         <div class="modal-body">
           <div id="compareResults" class="table-responsive">
@@ -805,6 +821,78 @@ document.addEventListener("click", async (e) => {
     icon.classList.remove("fa-star", "text-warning");
     icon.classList.add("fa-star-o", "text-secondary");
     $.notify("❌ הוסר מהמועדפים", "info");
+  }
+});
+
+
+//share
+document.getElementById("btnShare").addEventListener("click", async ()=>{
+  const url = window.location.href;
+  if (navigator.share) {
+    await navigator.share({ title: "רשימת קניות", text: "בדוק את הרשימה שלי", url });
+  } else {
+    navigator.clipboard.writeText(url);
+    $.notify("🔗 קישור הועתק ללוח", "info");
+  }
+});
+
+//history
+document.getElementById("btnHistory").addEventListener("click", async () => {
+  document.querySelectorAll(".footer-item").forEach(b => b.classList.remove("active"));
+  document.getElementById("btnHistory").classList.add("active");
+
+  const chatId = "{{ list_name.split('[')[1].split(']')[0] | default('0') }}";
+  const listEl = document.getElementById("historyList");
+  listEl.innerHTML = `<li class="list-group-item text-muted">טוען נתונים...</li>`;
+
+  const modal = new bootstrap.Modal(document.getElementById("historyModal"));
+  modal.show();
+
+  try {
+    const res = await fetch(`/api/history/${chatId}`);
+    const data = await res.json();
+    listEl.innerHTML = "";
+
+    if (!data.results || data.results.length === 0) {
+      listEl.innerHTML = `<li class="list-group-item text-muted">אין רשימות מהעבר</li>`;
+      return;
+    }
+
+    data.results.forEach(l => {
+      const li = document.createElement("li");
+      li.className = "list-group-item d-flex justify-content-between align-items-center";
+      li.innerHTML = `
+        <span>
+          <strong>${l.name}</strong><br>
+          <small class="text-muted">${l.created_at || ""}</small>
+        </span>
+        <button class="btn btn-outline-primary btn-sm reopenListBtn" 
+                data-list-id="${l.id}" 
+                title="שכפל רשימה">
+          <i class="fa fa-undo"></i>
+        </button>
+      `;
+      listEl.appendChild(li);
+    });
+  } catch (err) {
+    listEl.innerHTML = `<li class="list-group-item text-danger">⚠️ שגיאה בטעינת ההיסטוריה</li>`;
+  }
+});
+
+// 🔁 Handle reopen/duplicate
+document.addEventListener("click", async (e) => {
+  const btn = e.target.closest(".reopenListBtn");
+  if (!btn) return;
+
+  const originalId = btn.dataset.listId;
+  const res = await fetch(`/api/duplicate_list/${originalId}`);
+  const data = await res.json();
+
+  if (data.status === "success") {
+    $.notify("🔁 רשימה שוכפלה בהצלחה", "success");
+    window.location.href = `/list/${data.new_id}`;
+  } else {
+    $.notify("⚠️ שגיאה בשכפול הרשימה", "error");
   }
 });
 </script>
