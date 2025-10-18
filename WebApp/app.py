@@ -723,7 +723,6 @@ def get_location_name_from_google(lat, lon):
         )
         res = requests.get(url, timeout=10)
         data = res.json()
-
         if data.get("status") == "OK":
             for comp in data["results"][0]["address_components"]:
                 if "locality" in comp["types"] or "sublocality" in comp["types"]:
@@ -733,24 +732,32 @@ def get_location_name_from_google(lat, lon):
         print("⚠️ Google geocoding failed:", e)
         return None
 
-def get_image_from_google(query):
+def get_image_from_openfoodfacts(query):
     try:
-        GOOGLE_KEY = os.getenv("GOOGLE_MAPS_KEY")
-        CX_ID = os.getenv("GOOGLE_CX_ID")  # your search engine ID
-        url = (
-            f"https://www.googleapis.com/customsearch/v1"
-            f"?q={query}&cx={CX_ID}&searchType=image&num=1&key={GOOGLE_KEY}"
-        )
-        r = requests.get(url, timeout=10)
-        data = r.json()
-        if "items" in data and len(data["items"]) > 0:
-            return data["items"][0]["link"]
-        print("⚠️ No image found:", data)
+        url = f"https://il.openfoodfacts.org/cgi/search.pl?search_terms={query}&search_simple=1&action=process&json=1&page_size=3"
+        res = requests.get(url, timeout=10).json()
+        if res.get("products"):
+            for p in res["products"]:
+                if p.get("image_front_url"):
+                    return p["image_front_url"]
         return None
     except Exception as e:
-        print("❌ Google Image API error:", e)
+        print("OFF error:", e)
         return None
     
+@app.route("/api/search_image")
+def search_image():
+    """Return first Google image for given query."""
+    query = request.args.get("q")
+    if not query:
+        return jsonify({"error": "Missing query"}), 400
+
+    image_url = get_image_from_openfoodfacts(query)
+    if not image_url:
+        return jsonify({"error": "No image found"}), 404
+
+    return jsonify({"image": image_url})
+
 
 # --- Main Route: Compare Prices ---
 @app.route("/api/compare_prices", methods=["GET"])

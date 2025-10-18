@@ -1,2 +1,4 @@
 LogFile.log
 grocery_list.db
+*.env
+.env
