@@ -754,6 +754,108 @@ def check_and_notify_list_completion(list_id):
 
 
 
+@app.route('/api/update_product', methods=['POST'])
+# optional if you already protect this page
+def api_update_product():
+    data = request.get_json()
+    if not data:
+        return jsonify({"error": "no data"}), 400
+
+    sql = """
+        UPDATE products
+        SET name = :name,
+            price = :price,
+            category_id = :category,
+            unit = :unit
+        WHERE id = :id
+    """
+    ok = database_write(sql, data)
+    if ok == 1:
+        return jsonify({"status": "ok", "message": f"{data['name']} saved"})
+    else:
+        return jsonify({"status": "error"}), 500
+    
+  #Favorites
+
+@app.route("/api/favorites/<int:chat_id>", methods=["GET"])
+def get_favorites(chat_id):
+    sql = """
+        SELECT p.id AS product_id, p.name, p.price, p.unit, cat.name AS category
+        FROM favorites f
+        JOIN products p ON p.id = f.product_id
+        LEFT JOIN categories cat ON cat.id = p.category_id
+        WHERE f.chat_id = ?
+        ORDER BY f.created_at DESC;
+    """
+    data = database_read(sql, (chat_id,))
+    return jsonify({"results": data})
+
+
+@app.route("/api/favorites/add", methods=["POST"])
+def add_favorite():
+    data = request.get_json()
+    chat_id = data.get("chat_id")
+    product_id = data.get("product_id")
+
+    if not (chat_id and product_id):
+        return jsonify({"error": "Missing chat_id or product_id"}), 400
+
+    ok = database_write(
+        "INSERT OR IGNORE INTO favorites (chat_id, product_id) VALUES (?, ?)",
+        (chat_id, product_id)
+    )
+    return jsonify({"status": "added" if ok else "exists"})
+
+
+@app.route("/api/favorites/remove", methods=["POST"])
+def remove_favorite():
+    data = request.get_json()
+    chat_id = data.get("chat_id")
+    product_id = data.get("product_id")
+
+    if not (chat_id and product_id):
+        return jsonify({"error": "Missing chat_id or product_id"}), 400
+
+    ok = database_write(
+        "DELETE FROM favorites WHERE chat_id = ? AND product_id = ?",
+        (chat_id, product_id)
+    )
+    return jsonify({"status": "removed" if ok else "not_found"})
+
+
+@app.route("/api/history/<int:chat_id>")
+def get_history(chat_id):
+    """
+    Returns all archived (completed) lists for a given chat_id.
+    """
+    sql = """
+        SELECT id, name, datetime(created_at, 'localtime') AS created_at
+        FROM lists
+        WHERE chat_id = ? AND archived = 1
+        ORDER BY created_at DESC;
+    """
+    data = database_read(sql, (chat_id,))
+    return jsonify({"results": data})
+#EndRegion
+
+def check_and_notify_list_completion(list_id):
+    # Skip if already archived
+    already = database_read("SELECT archived, chat_id FROM lists WHERE id = ?", (list_id,))
+    if not already or already[0]['archived'] == 1:
+        return
+    chat_id = already[0]['chat_id']
+    print("testcompleted 'check_and_notify_list_completion' for:",chat_id)
+
+    items = database_read("SELECT collected FROM product_in_list WHERE list_id = ?", (list_id,))
+    if items and all(item['collected'] for item in items):
+        database_write(""" UPDATE lists SET archived = 1, name = name || ' (Archived)'
+                        WHERE id = ? """, (list_id,))
+        send_telegram_message(chat_id, key="list_completed", list_id=list_id)        
+
+
+
+
+
 @app.route('/debug/db/<table>')
 def debug_db_table(table):
     try:
@@ -802,6 +904,9 @@ def run_flask():
 
 if __name__ == "__main__":     
     run_flask()
+
+
+
 
 
 
