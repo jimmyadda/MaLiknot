@@ -96,8 +96,51 @@
   padding-right: 0.75rem;
   padding-left: 2rem; /* space before text so arrow doesn’t overlap */
 }
+
+.pagination {
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 4px;
+}
 </style>
 
+<script>
+window.saveRow = async function(btn) {
+  const row = btn.closest('tr');
+  const id = row.querySelector('input[name="id"]').value;
+  const name = row.querySelector('input[name="name"]').value;
+  const price = row.querySelector('input[name="price"]').value;
+  const unit = row.querySelector('input[name="unit"]').value;
+  const category = row.querySelector('select[name="category"]').value;
+  const status = row.querySelector('.save-status');
+
+  btn.disabled = true;
+  status.textContent = '⏳ שומר...';
+
+  try {
+    const res = await fetch('/api/update_product', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id, name, price, unit, category })
+    });
+    const data = await res.json();
+
+    if (data.status === 'ok') {
+      status.textContent = '✅ נשמר';
+      status.style.color = 'green';
+    } else {
+      status.textContent = '❌ שגיאה';
+      status.style.color = 'red';
+    }
+  } catch (err) {
+    status.textContent = '⚠️ בעיה ברשת';
+    status.style.color = 'orange';
+  } finally {
+    btn.disabled = false;
+    setTimeout(() => status.textContent = '', 3000);
+  }
+}
+</script>
 <div class="edit-container">
   <h3>עריכת מוצרים</h3>
 
@@ -154,6 +197,38 @@
       </tbody>
     </table>
   </div>
+  
+  <div class="text-center mt-3">
+  {% if pages > 1 %}
+  <nav aria-label="Page navigation">
+    <ul class="pagination justify-content-center">
+      <!-- Previous -->
+      <li class="page-item {% if page == 1 %}disabled{% endif %}">
+        <a class="page-link" 
+           href="{{ url_for('edit_all_products', page=page-1) if page > 1 else '#' }}">
+          ‹ הקודם
+        </a>
+      </li>
+
+      <!-- Page numbers -->
+      {% for p in range(1, pages + 1) %}
+      <li class="page-item {% if p == page %}active{% endif %}">
+        <a class="page-link" href="{{ url_for('edit_all_products', page=p) }}">{{ p }}</a>
+      </li>
+      {% endfor %}
+
+      <!-- Next -->
+      <li class="page-item {% if page == pages %}disabled{% endif %}">
+        <a class="page-link" 
+           href="{{ url_for('edit_all_products', page=page+1) if page < pages else '#' }}">
+          הבא ›
+        </a>
+      </li>
+    </ul>
+  </nav>
+  {% endif %}
+</div>
+
 
   <div class="text-center mt-4">
     <a href="{{ url_for('index') }}" class="btn btn-link">חזרה לדף הבית</a>
@@ -169,44 +244,5 @@
       tr.style.display = text.includes(value) ? '' : 'none';
     });
   });
-
-
-
-  //Async
-async function saveRow(btn) {
-  const row = btn.closest('tr');
-  const id = row.querySelector('input[name="id"]').value;
-  const name = row.querySelector('input[name="name"]').value;
-  const price = row.querySelector('input[name="price"]').value;
-  const unit = row.querySelector('input[name="unit"]').value;
-  const category = row.querySelector('select[name="category"]').value;
-  const status = row.querySelector('.save-status');
-  
-  btn.disabled = true;
-  status.textContent = '⏳ שומר...';
-
-  try {
-    const res = await fetch('/api/update_product', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ id, name, price, unit, category })
-    });
-    const data = await res.json();
-
-    if (data.status === 'ok') {
-      status.textContent = '✅ נשמר';
-      status.style.color = 'green';
-    } else {
-      status.textContent = '❌ שגיאה';
-      status.style.color = 'red';
-    }
-  } catch (err) {
-    status.textContent = '⚠️ בעיה ברשת';
-    status.style.color = 'orange';
-  } finally {
-    btn.disabled = false;
-    setTimeout(() => status.textContent = '', 3000);
-  }
-}
 </script>
 {% endblock %}

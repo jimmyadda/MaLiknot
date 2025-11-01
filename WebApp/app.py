@@ -256,6 +256,11 @@ def delete_product(product_id):
 def edit_all_products():
     category = database_read("SELECT * FROM categories ORDER BY name;")
 
+    # Pagination setup
+    page = int(request.args.get('page', 1))
+    per_page = 200
+    offset = (page - 1) * per_page
+
     if request.method == 'POST':
         # Handle update of a single product row
         form = dict(request.values)
@@ -273,23 +278,26 @@ def edit_all_products():
         else:
             flash(f"שגיאה בעדכון {form['name']}", "danger")
 
-        # Re-render with updated data
-        products = database_read("""
-            SELECT p.*, cat.name AS catName
-            FROM products p
-            LEFT JOIN categories cat ON p.category_id = cat.id
-            ORDER BY p.name
-        """)
-        return render_template('EditAllProducts.html', products=products, categories=category)
-
-    # GET → display all products
+    # Always refresh product list (both for GET and POST)
     products = database_read("""
         SELECT p.*, cat.name AS catName
         FROM products p
         LEFT JOIN categories cat ON p.category_id = cat.id
         ORDER BY p.name
-    """)
-    return render_template('EditAllProducts.html', products=products, categories=category)
+        LIMIT ? OFFSET ?
+    """, (per_page, offset))
+
+    # Get total for pagination buttons
+    total = database_read("SELECT COUNT(*) AS total FROM products")[0]['total']
+    pages = (total + per_page - 1) // per_page  # total page count
+
+    return render_template(
+        'EditAllProducts.html',
+        products=products,
+        categories=category,
+        page=page,
+        pages=pages
+    )
 
 @app.route("/list/<int:list_id>", methods=["GET", "POST"])
 def view_list(list_id):
