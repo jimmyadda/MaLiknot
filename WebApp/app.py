@@ -734,7 +734,167 @@ def set_user_lang_api():
     return jsonify({"status": "ok"})
 #EndRegion
 
+def get_location_name_from_google(lat, lon):
+    GOOGLE_KEY = os.getenv("GOOGLE_MAPS_KEY")
+    if not GOOGLE_KEY:
+        print("⚠️ GOOGLE_MAPS_KEY not set — skipping Google fallback.")
+        return None
 
+    try:
+        url = (
+            f"https://maps.googleapis.com/maps/api/geocode/json?"
+            f"latlng={lat},{lon}&language=he&key={GOOGLE_KEY}"
+        )
+        res = requests.get(url, timeout=10)
+        data = res.json()
+        if data.get("status") == "OK":
+            for comp in data["results"][0]["address_components"]:
+                if "locality" in comp["types"] or "sublocality" in comp["types"]:
+                    return comp["long_name"]
+        return None
+    except Exception as e:
+        print("⚠️ Google geocoding failed:", e)
+        return None
+    
+def get_image_from_openfoodfacts(query):
+    try:
+        url = f"https://il.openfoodfacts.org/cgi/search.pl?search_terms={query}&search_simple=1&action=process&json=1&page_size=3"
+        res = requests.get(url, timeout=10).json()
+        if res.get("products"):
+            for p in res["products"]:
+                if p.get("image_front_url"):
+                    return p["image_front_url"]
+        return None
+    except Exception as e:
+        print("OFF error:", e)
+        return None
+    
+@app.route("/api/search_image")
+def search_image():
+    """Return first Google image for given query."""
+    query = request.args.get("q")
+    if not query:
+        return jsonify({"error": "Missing query"}), 400
+
+    image_url = get_image_from_openfoodfacts(query)
+    if not image_url:
+        return jsonify({"error": "No image found"}), 404
+
+    return jsonify({"image": image_url})
+
+
+# --- Main Route: Compare Prices ---
+@app.route("/api/compare_prices", methods=["GET"])
+def compare_prices():
+    """
+    Example:
+    /api/compare_prices?product=קולה&lat=32.689&lon=35.022
+    """
+    product = request.args.get("product")
+    lat = request.args.get("lat")
+    lon = request.args.get("lon")
+    print("OSM LA LO",lat,lon)
+    if not product:
+        return jsonify({"error": "Missing product name"}), 400
+
+    # --- 1. Get location name ---
+    location_name = None
+    if lat and lon:
+        try:
+            headers = {"User-Agent": "MaliknotBot/1.0 (contact: your_email@example.com)"}
+            geo_url = f"https://nominatim.openstreetmap.org/reverse?lat={lat}&lon={lon}&format=json"
+            geo_res = requests.get(geo_url, headers=headers, timeout=10)
+            geo_data = geo_res.json()        
+            address = geo_data.get("address", {})
+            location_name = (
+                address.get("city")
+                or address.get("town")
+                or address.get("village")
+                or address.get("hamlet")
+                or address.get("suburb")
+                or address.get("neighbourhood")
+                or address.get("county")
+            )
+            print("OSM Location",location_name)
+
+            # If OSM returns nothing useful → try Google
+            if not location_name or "מועצה" in location_name:
+                location_name = get_location_name_from_google(lat, lon) or "תל אביב"
+                print("Google Location name" , location_name)
+
+        except Exception as e:
+            print("⚠️ OSM geocoding failed:", e)
+            location_name = get_location_name_from_google(lat, lon) or "תל אביב"
+
+    else:
+        location_name = request.args.get("location", "תל אביב")
+
+    print("🏙 Final location name:", location_name)
+
+    # --- 2. Fetch CHP page ---
+    chp_url = (
+        f"https://chp.co.il/main_page/compare_results"
+        f"?shopping_address={location_name}&product_name_or_barcode={product}"
+    )
+
+    try:
+        chp_res = requests.get(chp_url, timeout=15)
+        chp_res.raise_for_status()
+    except Exception as e:
+        return jsonify({"error": f"Failed to fetch CHP: {str(e)}"}), 500
+
+    # --- 3. Parse HTML results ---
+    soup = BeautifulSoup(chp_res.text, "html.parser")
+    table = soup.find("table", {"class": "results-table"})
+    if not table:
+        return jsonify({"error": "No results-table found"}), 404
+
+    results = []
+    for tr in table.find_all("tr")[1:]:
+        tds = tr.find_all("td")
+        if len(tds) >= 5:
+            store_name = tds[0].get_text(strip=True)
+            branch = tds[1].get_text(strip=True)
+            address = tds[2].get_text(strip=True)
+            price = tds[4].get_text(strip=True)
+            if store_name and price:
+                results.append(
+                    {
+                        "store": store_name,
+                        "branch": branch,
+                        "address": address,
+                        "price": price,
+                    }
+                )
+
+    return jsonify(
+        {
+            "product": product,
+            "location": location_name,
+            "count": len(results),
+            "results": results,
+        }
+    )
+
+@app.route("/api/search_products")
+def search_products():
+    q = request.args.get("q", "").strip()
+    print(q)
+    if not q:
+        return jsonify({"results": []})
+    results = database_read("""
+        SELECT p.id AS product_id, 
+            p.name, 
+            p.price, 
+            p.unit, 
+            cat.name AS category
+        FROM products p
+        LEFT JOIN categories cat ON cat.id = p.category_id
+        WHERE p.name LIKE ?
+        ORDER BY p.name ASC
+        LIMIT 15;
+    """, (f"%{q}%",))
+    return jsonify({"results": results})
 
 def check_and_notify_list_completion(list_id):
     # Skip if already archived
