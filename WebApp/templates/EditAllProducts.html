@@ -1,0 +1,208 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+
+<style>
+  /* 🔹 General layout */
+  .edit-container {
+    max-width: 1100px;
+    margin: 20px auto;
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    padding: 20px;
+  }
+
+  h3 {
+    text-align: center;
+    margin-bottom: 20px;
+    font-weight: 600;
+  }
+
+  /* 🔹 Scrollable product table */
+  .table-wrapper {
+    max-height: 75vh;
+    overflow-y: auto;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    text-align: right;
+  }
+
+  th, td {
+    padding: 10px 12px;
+    border-bottom: 1px solid #eee;
+    vertical-align: middle;
+  }
+
+  th {
+    background-color: #f8f9fa;
+    position: sticky;
+    top: 0;
+    z-index: 2;
+  }
+
+  tr:hover {
+    background-color: #f1f7ff;
+  }
+
+  input, select {
+    width: 100%;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    padding: 4px 8px;
+  }
+
+  input:focus, select:focus {
+    border-color: #0d6efd;
+    outline: none;
+  }
+
+  /* 🔹 Action buttons */
+  .save-btn {
+    background-color: #198754;
+    border: none;
+    color: #fff;
+    padding: 6px 10px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+  }
+
+  .save-btn:hover {
+    background-color: #157347;
+  }
+
+  .search-bar {
+    margin-bottom: 15px;
+  }
+
+  .search-bar input {
+    width: 300px;
+    padding: 6px 10px;
+    border-radius: 8px;
+    border: 1px solid #ccc;
+  }
+
+  .form-select {
+  direction: rtl;
+  text-align: right;
+  background-position: left 0.75rem center; /* Move arrow to the left */
+  padding-right: 0.75rem;
+  padding-left: 2rem; /* space before text so arrow doesn’t overlap */
+}
+</style>
+
+<div class="edit-container">
+  <h3>עריכת מוצרים</h3>
+
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+      {% for category, message in messages %}
+        <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+          {{ message }}
+          <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+      {% endfor %}
+    {% endif %}
+  {% endwith %}
+
+  <!-- 🔍 Search bar -->
+  <div class="search-bar text-center">
+    <input type="text" id="productFilter" placeholder="חפש מוצר לפי שם...">
+  </div>
+
+  <div class="table-wrapper">
+    <table id="productTable" style="direction: rtl;">
+      <thead>
+        <tr>
+          <th>שם המוצר</th>
+          <th>קטגוריה</th>
+          <th>מחיר</th>
+          <th>יחידה</th>
+          <th>שמירה</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for product in products %}
+        <tr>
+          <form method="POST">
+            <input type="hidden" name="id" value="{{ product.id }}">
+            <td><input type="text" name="name" value="{{ product.name }}"></td>
+            <td>
+              <select name="category" class="form-select">
+                <option value="">בחר...</option>
+                {% for cat in categories %}
+                <option value="{{ cat.id }}" {% if cat.id == product.category_id|int %}selected{% endif %}>{{ cat.name }}</option>
+                {% endfor %}
+              </select>
+            </td>
+            <td><input type="number" step="0.01" name="price" value="{{ product.price if product.price is not none else '0.00' }}"></td>
+            <td><input type="text" name="unit" value="{{ product.unit }}"></td>
+            <td>
+              <button type="button" class="save-btn" onclick="saveRow(this)">💾</button>
+              <span class="save-status" style="margin-right:5px;"></span>
+            </td>
+          </form>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <div class="text-center mt-4">
+    <a href="{{ url_for('index') }}" class="btn btn-link">חזרה לדף הבית</a>
+  </div>
+</div>
+
+<script>
+  // 🔍 Simple client-side search
+  document.getElementById('productFilter').addEventListener('keyup', function () {
+    let value = this.value.toLowerCase();
+    document.querySelectorAll('#productTable tbody tr').forEach(tr => {
+      const text = tr.innerText.toLowerCase();
+      tr.style.display = text.includes(value) ? '' : 'none';
+    });
+  });
+async function saveRow(btn) {
+  const row = btn.closest('tr');
+  const id = row.querySelector('input[name="id"]').value;
+  const name = row.querySelector('input[name="name"]').value;
+  const price = row.querySelector('input[name="price"]').value;
+  const unit = row.querySelector('input[name="unit"]').value;
+  const category = row.querySelector('select[name="category"]').value;
+  const status = row.querySelector('.save-status');
+  
+  btn.disabled = true;
+  status.textContent = '⏳ שומר...';
+
+  try {
+    const res = await fetch('/api/update_product', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id, name, price, unit, category })
+    });
+    const data = await res.json();
+
+    if (data.status === 'ok') {
+      status.textContent = '✅ נשמר';
+      status.style.color = 'green';
+    } else {
+      status.textContent = '❌ שגיאה';
+      status.style.color = 'red';
+    }
+  } catch (err) {
+    status.textContent = '⚠️ בעיה ברשת';
+    status.style.color = 'orange';
+  } finally {
+    btn.disabled = false;
+    setTimeout(() => status.textContent = '', 3000);
+  }
+}
+</script>
+{% endblock %}

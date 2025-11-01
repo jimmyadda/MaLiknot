@@ -22,7 +22,7 @@ from telegram_utils import send_telegram_message, extract_chat_id
 from flask import send_from_directory
 import nest_asyncio
 import asyncio
-
+from config import DATABASE_PATH as db_name
 from user_settings import get_user_language, save_user_language
 
 
@@ -251,6 +251,45 @@ def delete_product(product_id):
     data = database_read(f"select p.*,cat.name as catName from products p left JOIN categories cat on category_id = cat.id")
     categories =  database_read(f"select * from categories order by name;")
     return render_template('index.html', all_items=data,categories=categories) 
+
+@app.route('/products/edit_all', methods=['GET', 'POST'])
+def edit_all_products():
+    category = database_read("SELECT * FROM categories ORDER BY name;")
+
+    if request.method == 'POST':
+        # Handle update of a single product row
+        form = dict(request.values)
+        sql = """
+            UPDATE products
+            SET name = :name,
+                price = :price,
+                category_id = :category,
+                unit = :unit
+            WHERE id = :id
+        """
+        ok = database_write(sql, form)
+        if ok == 1:
+            flash(f"מוצר {form['name']} נשמר בהצלחה!", "success")
+        else:
+            flash(f"שגיאה בעדכון {form['name']}", "danger")
+
+        # Re-render with updated data
+        products = database_read("""
+            SELECT p.*, cat.name AS catName
+            FROM products p
+            LEFT JOIN categories cat ON p.category_id = cat.id
+            ORDER BY p.name
+        """)
+        return render_template('EditAllProducts.html', products=products, categories=category)
+
+    # GET → display all products
+    products = database_read("""
+        SELECT p.*, cat.name AS catName
+        FROM products p
+        LEFT JOIN categories cat ON p.category_id = cat.id
+        ORDER BY p.name
+    """)
+    return render_template('EditAllProducts.html', products=products, categories=category)
 
 @app.route("/list/<int:list_id>", methods=["GET", "POST"])
 def view_list(list_id):
@@ -589,12 +628,30 @@ def add_list_from_telegram():
         quantity = item['quantity']
         note = item['note']
 
-        prod = database_read("SELECT id FROM products WHERE name = ?", (product,))
-        if prod:
-            product_id = prod[0]['id']
+        # Try to find existing product by exact name first
+        prod = database_read("SELECT id FROM products WHERE name = ?", (product.strip(),))
+        if not prod:
+            # If not found, look for partial matches
+            similar = database_read("SELECT id, name FROM products WHERE name LIKE ? LIMIT 5", (f"%{product.strip()}%",))
+
+            if len(similar) == 1:
+                # ✅ Exactly one similar product found → reuse that ID
+                product_id = similar[0]['id']
+                print(f"🔁 Found similar match for '{product}': {similar[0]['name']} (id={product_id})")
+
+            else:
+                # ❌ No match or too many ambiguous matches → insert new
+                print(f"Adding new product: {product}")
+                conn = sqlite3.connect(db_name)
+                cursor = conn.cursor()
+                cursor.execute("INSERT INTO products (name) VALUES (?)", (product.strip(),))
+                product_id = cursor.lastrowid  # ✅ get the ID of the inserted row safely
+                print("New product id",product_id)
+                conn.commit()
+                conn.close()
         else:
-            database_write("INSERT INTO products (name) VALUES (?)", (product,))
-            product_id = database_read("SELECT max(id) as id FROM products")[0]['id']
+            # ✅ Exact match
+            product_id = prod[0]['id']
 
         # Check if item already exists in the list
         existing = database_read("""
@@ -872,6 +929,27 @@ def search_products():
     """, (f"%{q}%",))
     return jsonify({"results": results})
 
+@app.route('/api/update_product', methods=['POST'])
+# optional if you already protect this page
+def api_update_product():
+    data = request.get_json()
+    if not data:
+        return jsonify({"error": "no data"}), 400
+
+    sql = """
+        UPDATE products
+        SET name = :name,
+            price = :price,
+            category_id = :category,
+            unit = :unit
+        WHERE id = :id
+    """
+    ok = database_write(sql, data)
+    if ok == 1:
+        return jsonify({"status": "ok", "message": f"{data['name']} saved"})
+    else:
+        return jsonify({"status": "error"}), 500
+    
   #Favorites
 
 @app.route("/api/favorites/<int:chat_id>", methods=["GET"])

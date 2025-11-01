@@ -587,6 +587,7 @@ const notifyMessages = {
             const lat = position.coords.latitude;
             const lon = position.coords.longitude;
             $.notify("טוען נתונים...", "info");
+            console.log(lat,lon);
 
             // Call your Flask API route
             const response = await fetch(`/api/compare_prices?product=${product}&lat=${lat}&lon=${lon}`);
