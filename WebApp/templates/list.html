@@ -106,14 +106,13 @@
 /* 🧩 Mobile responsive layout */
 @media (max-width: 768px) {
   /* Hide only price and notes columns */
-  .col-price,
-  .col-notes {
+  .col-notes,.col-price{
     display: none;
   }
 
   /* Adjust widths for 4-column layout */
   .col-name {
-    width: 40%;
+    width: 30%;
     text-align: right;
   }
   .col-qty {
@@ -219,6 +218,48 @@
 .addToListBtn i {
   font-size: 1rem;
 }
+/*notes*/
+.item-row { position: relative; cursor: pointer; }
+
+/* hide the editor cell by default */
+.item-row .row-note-editor {
+  display: none;
+  padding: 0;
+  border: 0;
+}
+
+/* when editing, hide normal cells and show editor */
+.item-row.editing > td:not(.row-note-editor) {
+  display: none;
+}
+
+.item-row.editing .row-note-editor {
+  display: table-cell;
+}
+
+/* slide-in animation */
+.row-note-inner {
+  background: #f8f9fa;
+  padding: 10px;
+  transform: translateX(100%);
+  transition: transform 0.25s ease;
+}
+
+.item-row.editing .row-note-inner {
+  transform: translateX(0);
+}
+/* overlay cell */
+.row-note-editor {
+  display: none;
+  pointer-events: none; /* ⬅️ important */
+}
+
+/* enable interaction only when editing */
+.item-row.editing .row-note-editor {
+  display: table-cell;
+  pointer-events: auto;
+}
+
 </style>
 
 <body class="p-4">
@@ -248,7 +289,10 @@
     </thead>
     <tbody>
       {% for item in items %}
-        <tr class="{% if item.collected %}table-success{% endif %}">
+<tr class="item-row {% if item.collected %}table-success{% endif %}"
+    data-item-id="{{ item['id'] }}">
+
+  <!-- normal cells (VIEW MODE) -->
           <td class="col-name">
               <button class="favToggle btn btn-link p-0 me-1"
           data-product-id="{{ item['id'] }}"
@@ -261,21 +305,26 @@
               {{ item['name'] }}
             {% endif %}
           </td>
-          <td class="col-qty">{{ item['quantity'] }}</td>
-          <td class="col-price">{{ item['price'] or '-' }}</td>
-          <td class="col-notes">{{ item['notes'] or '' }}</td>
-          <td class="col-collected">
-            <input class="form-check-input position-static" 
-                   data-item-id="{{ item['id'] }}" 
-                   type="checkbox" 
-                   id="blankCheckbox" 
-                   onchange="updateCollected(this)" 
-                   value="option1" 
-                   data-quantity="{{ item.quantity }}"
-                   data-confirm-message="{{ confirm_message }}"
-                   {% if item.collected %}checked{% endif %} >
-          </td>
-          <td class="col-actions">
+
+  <td class="col-qty editable" onclick="openRowNoteEditor(this.closest('tr'))">{{ item['quantity'] }}</td>
+  <td class="col-price editable" onclick="openRowNoteEditor(this.closest('tr'))">{{ item['price'] or '-' }}</td>
+
+  <!-- Notes view (no more slide here) -->
+<td class="col-notes editable" onclick="openRowNoteEditor(this.closest('tr'))">
+  <span class="note-view">{{ item['notes'] or '—' }}</span>
+</td>
+
+  <td class="col-collected" >
+    <input class="form-check-input position-static"
+           data-item-id="{{ item['id'] }}"
+           type="checkbox"
+           onchange="updateCollected(this)"
+           value="option1"
+           data-quantity="{{ item.quantity }}"
+           data-confirm-message="{{ confirm_message }}"
+           {% if item.collected %}checked{% endif %}>
+  </td>
+   <td class="col-actions">
             <button class="delete-btn btn btn-danger btn-sm me-1" title="הסר">
               <i class="fa fa-trash"></i>
             </button>
@@ -285,7 +334,25 @@
               <i class="fa fa-balance-scale"></i>
             </button>
           </td>
-        </tr>
+
+  <!-- FULL ROW SLIDE OVERLAY (EDIT MODE) -->
+  <td class="row-note-editor" colspan="6" onclick="event.stopPropagation();">
+    <div class="row-note-inner">
+      <textarea class="form-control form-control-sm note-input"
+                rows="2"
+                placeholder="הוסף הערה...">{{ item['notes'] or '' }}</textarea>
+
+      <div class="text-end mt-1">
+        <button class="btn btn-success btn-sm"
+                onclick="saveRowNote(event, this)">✔</button>
+        <button class="btn btn-secondary btn-sm"
+                onclick="closeRowNoteEditor(event, this)">✖</button>
+      </div>
+    </div>
+  </td>
+
+</tr>
+
       {% else %}
         <tr><td colspan="6" class="text-center text-muted">אין פריטים ברשימה</td></tr>
       {% endfor %}
@@ -898,6 +965,51 @@ document.addEventListener("click", async (e) => {
 });
 
 </script>
+
+
+<script>
+function openRowNoteEditor(tr) {
+  document.querySelectorAll('.item-row.editing').forEach(r => {
+    if (r !== tr) r.classList.remove('editing');
+  });
+  tr.classList.add('editing');
+}
+
+function closeRowNoteEditor(e, btn) {
+  e.stopPropagation();
+  btn.closest('.item-row').classList.remove('editing');
+}
+
+async function saveRowNote(e, btn) {
+  e.stopPropagation();
+  const tr = btn.closest('.item-row');
+  const itemId = tr.dataset.itemId;
+  const note = tr.querySelector('.note-input').value;
+
+  btn.disabled = true;
+  try {
+    const res = await fetch('/api/update_item_note', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ item_id: itemId, note })
+    });
+    const data = await res.json();
+
+    if (data.status === 'ok') {
+      tr.querySelector('.note-view').textContent = note || '—';
+      tr.classList.remove('editing');
+      $.notify("הערה נשמרה", "success");
+    } else {
+      $.notify("שגיאה בשמירה", "error");
+    }
+  } catch (err) {
+    $.notify("שגיאת רשת", "error");
+  } finally {
+    btn.disabled = false;
+  }
+}
+</script>
+
 
 </body>
 {% endblock %}

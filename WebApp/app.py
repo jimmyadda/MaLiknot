@@ -904,6 +904,23 @@ def search_products():
     """, (f"%{q}%",))
     return jsonify({"results": results})
 
+@app.route('/api/update_item_note', methods=['POST'])
+def update_item_note():
+    data = request.get_json()
+    item_id = data.get('item_id')
+    note = data.get('note', '').strip()
+
+    if not item_id:
+        return jsonify({"error": "Missing item_id"}), 400
+
+    database_write("""
+        UPDATE product_in_list
+        SET notes = ?
+        WHERE id = ?
+    """, (note, item_id))
+
+    return jsonify({"status": "ok"})
+
 def check_and_notify_list_completion(list_id):
     # Skip if already archived
     already = database_read("SELECT archived, chat_id FROM lists WHERE id = ?", (list_id,))
